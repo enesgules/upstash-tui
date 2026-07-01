@@ -17,10 +17,12 @@ export function SummaryCard({
   commands,
   storageBytes,
   cost,
+  synthetic,
 }: {
   commands: number | null
   storageBytes: number | null
   cost: number | null
+  synthetic?: boolean
 }) {
   return (
     <box
@@ -40,6 +42,7 @@ export function SummaryCard({
       <Metric label="Commands" value={commands === null ? "—" : formatCompactNumber(commands)} />
       <Metric label="Storage" value={storageBytes === null ? "—" : formatBytes(storageBytes)} />
       <Metric label="Cost" value={cost === null ? "—" : formatCost(cost)} />
+      {synthetic ? <text fg={theme.textFaint}>~ sample metrics</text> : null}
     </box>
   )
 }

@@ -13,6 +13,7 @@ export type RedisDatabase = {
   eviction: boolean
   prodPack: boolean
   stats?: RedisStats
+  synthetic?: boolean
   commands: { used: number | null; limit: number | null }
   storage: { usedBytes: number | null; limitBytes: number | null }
   cost: { current: number | null; budget: number | null }

@@ -7,6 +7,7 @@ import { ProdPackBadge } from "./ProdPackBadge.tsx"
 import { EnterpriseNudge } from "./EnterpriseNudge.tsx"
 
 export function DetailsPanel({ db }: { db: RedisDatabase }) {
+  const throughput = db.stats?.throughput.map((p) => p.y) ?? []
   return (
     <box
       title={db.name}
@@ -21,7 +22,10 @@ export function DetailsPanel({ db }: { db: RedisDatabase }) {
         padding: 1,
       }}
     >
-      <text fg={theme.textDim}>{`${db.plan} · ${db.provider} · ${db.region}`}</text>
+      <box style={{ flexDirection: "row", gap: 2 }}>
+        <text fg={theme.textDim}>{`${db.plan} · ${db.provider} · ${db.region}`}</text>
+        {db.synthetic ? <text fg={theme.textFaint}>~ sample metrics</text> : null}
+      </box>
       <box style={{ flexDirection: "column", marginTop: 1 }}>
         <UsageBar label="Commands" used={db.commands.used} limit={db.commands.limit} format={formatCount} />
         <UsageBar label="Storage" used={db.storage.usedBytes} limit={db.storage.limitBytes} format={formatStorage} />
@@ -33,7 +37,11 @@ export function DetailsPanel({ db }: { db: RedisDatabase }) {
       </box>
       <box style={{ flexDirection: "row", gap: 1, marginTop: 1 }}>
         <text fg={theme.textDim}>Throughput</text>
-        <Sparkline values={db.stats?.throughput.map((p) => p.y) ?? []} width={24} />
+        {throughput.length > 0 ? (
+          <Sparkline values={throughput} width={24} />
+        ) : (
+          <text fg={theme.textFaint}>no recent activity</text>
+        )}
       </box>
       <box style={{ flexDirection: "row", gap: 3, marginTop: 1 }}>
         <ProdPackBadge active={db.prodPack} />

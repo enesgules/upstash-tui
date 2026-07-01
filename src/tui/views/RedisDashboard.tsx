@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { useKeyboard } from "@opentui/react"
 import { theme, layout } from "../../theme.ts"
 import { databases as mockDatabases } from "../../mock.ts"
+import { withSyntheticStats } from "../../synthStats.ts"
 import type { RedisDatabase, OperationPlan } from "../../types.ts"
 import type { UpstashCreds, OpenRouterCreds } from "../../config.ts"
 import { ProductNav } from "../components/ProductNav.tsx"
@@ -45,7 +46,9 @@ export function RedisDashboard({
   onHome: () => void
   onCycle: (delta: number) => void
 }) {
-  const [databases, setDatabases] = useState<RedisDatabase[]>(mode === "demo" ? mockDatabases : [])
+  const [databases, setDatabases] = useState<RedisDatabase[]>(
+    mode === "demo" ? mockDatabases.map(withSyntheticStats) : [],
+  )
   const [loading, setLoading] = useState(mode === "live")
   const [loadError, setLoadError] = useState<string | null>(null)
   const [selectedIndex, setSelectedIndex] = useState(0)
@@ -59,13 +62,18 @@ export function RedisDashboard({
   const [commandBusy, setCommandBusy] = useState(false)
   const [commandError, setCommandError] = useState<string | null>(null)
 
+  const [search, setSearch] = useState("")
+  const [searchFocused, setSearchFocused] = useState(false)
+  // Bumping this remounts the search input, which is how we clear its text.
+  const [searchResetKey, setSearchResetKey] = useState(0)
+
   async function loadLive() {
     if (mode !== "live" || !creds) return
     setLoading(true)
     setLoadError(null)
     try {
       const dbs = await listDatabases(creds)
-      setDatabases(dbs)
+      setDatabases(dbs.map(withSyntheticStats))
       setSelectedIndex((i) => Math.min(i, Math.max(0, dbs.length - 1)))
     } catch (e) {
       setLoadError(e instanceof Error ? e.message : "Failed to load databases")
@@ -79,7 +87,28 @@ export function RedisDashboard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const selected: RedisDatabase | undefined = databases[selectedIndex]
+  const query = search.trim().toLowerCase()
+  const visibleDatabases = query
+    ? databases.filter((d) => d.name.toLowerCase().includes(query))
+    : databases
+  const selected: RedisDatabase | undefined = visibleDatabases[selectedIndex]
+
+  function onSearchInput(value: string) {
+    setSearch(value)
+    setSelectedIndex(0)
+  }
+
+  function onSearchSubmit() {
+    // Keep the filter, hand keyboard focus back to the list for navigation.
+    setSearchFocused(false)
+  }
+
+  function clearSearch() {
+    setSearch("")
+    setSelectedIndex(0)
+    setSearchFocused(false)
+    setSearchResetKey((k) => k + 1)
+  }
 
   function openPreview(plan: OperationPlan) {
     setPreviewResult(null)
@@ -140,15 +169,22 @@ export function RedisDashboard({
       if (key.name === "escape") setCommandFocused(false)
       return // typing flows to the command input
     }
+    if (searchFocused) {
+      if (key.name === "escape") clearSearch()
+      return // typing flows to the search input
+    }
 
     if (key.name === "escape") {
-      onHome()
+      if (query) clearSearch()
+      else onHome()
     } else if (key.name === "tab") {
       onCycle(key.shift ? -1 : 1)
     } else if (key.name === "up" || key.name === "k") {
       setSelectedIndex((i) => Math.max(0, i - 1))
     } else if (key.name === "down" || key.name === "j") {
-      setSelectedIndex((i) => Math.min(databases.length - 1, i + 1))
+      setSelectedIndex((i) => Math.min(visibleDatabases.length - 1, i + 1))
+    } else if (key.name === "s") {
+      setSearchFocused(true)
     } else if (key.name === "r") {
       void loadLive()
     } else if ((key.name === "slash" || key.sequence === "/" || key.name === "i") && openrouter) {
@@ -161,14 +197,14 @@ export function RedisDashboard({
     }
   })
 
-  const summary =
-    mode === "demo"
-      ? {
-          commands: databases.reduce((s, d) => s + (d.commands.used ?? 0), 0),
-          storageBytes: databases.reduce((s, d) => s + (d.storage.usedBytes ?? 0), 0),
-          cost: databases.reduce((s, d) => s + (d.cost.current ?? 0), 0),
-        }
-      : { commands: null, storageBytes: null, cost: null }
+  // Usage is synthesized (see withSyntheticStats) whenever real stats are
+  // absent, so the summary now aggregates in both modes rather than showing "—".
+  const summary = {
+    commands: databases.reduce((s, d) => s + (d.commands.used ?? 0), 0),
+    storageBytes: databases.reduce((s, d) => s + (d.storage.usedBytes ?? 0), 0),
+    cost: databases.reduce((s, d) => s + (d.cost.current ?? 0), 0),
+  }
+  const summarySynthetic = databases.some((d) => d.synthetic)
 
   return (
     <box
@@ -182,15 +218,28 @@ export function RedisDashboard({
       }}
     >
       <ProductNav activeKey="redis" />
-      <SummaryCard commands={summary.commands} storageBytes={summary.storageBytes} cost={summary.cost} />
+      <SummaryCard
+        commands={summary.commands}
+        storageBytes={summary.storageBytes}
+        cost={summary.cost}
+        synthetic={summarySynthetic}
+      />
 
       <box style={{ flexDirection: "row", gap: layout.gap, flexGrow: 1 }}>
-        <ResourceList databases={databases} selectedId={selected?.id ?? ""} />
+        <ResourceList
+          databases={visibleDatabases}
+          selectedId={selected?.id ?? ""}
+          searchValue={search}
+          searchFocused={searchFocused}
+          searchResetKey={searchResetKey}
+          onSearchInput={onSearchInput}
+          onSearchSubmit={onSearchSubmit}
+        />
         <RightPanel loading={loading} loadError={loadError} selected={selected} />
       </box>
 
       <text fg={theme.textFaint}>
-        ↑↓ select · tab switch product · e eviction · d delete · r refresh{openrouter ? " · / ask AI" : ""} · esc home
+        ↑↓ select · s search · tab switch product · e eviction · d delete · r refresh · esc {query ? "clear" : "home"}
       </text>
 
       <CommandBar
