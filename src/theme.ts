@@ -2,6 +2,7 @@ export const theme = {
   bg: "#0A0A0A",
   bgPanel: "#111111",
   accent: "#00E9A3",
+  accentLight: "#CCFBED",
   accentDim: "#0C3B2E",
   border: "#2A2A2A",
   borderSubtle: "#1E1E1E",
