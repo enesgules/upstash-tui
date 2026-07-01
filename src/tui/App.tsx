@@ -4,6 +4,7 @@ import { loadConfig, missingUpstashVars } from "../config.ts"
 import { HomeView } from "./views/HomeView.tsx"
 import { RedisDashboard } from "./views/RedisDashboard.tsx"
 import { QStashView } from "./views/QStashView.tsx"
+import { WorkflowView } from "./views/WorkflowView.tsx"
 import { VectorView } from "./views/VectorView.tsx"
 import { ComingSoonView } from "./views/ComingSoonView.tsx"
 import { SetupView } from "./views/SetupView.tsx"
@@ -33,6 +34,10 @@ export function App() {
 
   if (route.key === "qstash") {
     return <QStashView creds={config.qstash} onHome={goHome} onCycle={cycle} />
+  }
+
+  if (route.key === "workflow") {
+    return <WorkflowView creds={config.qstash} onHome={goHome} onCycle={cycle} />
   }
 
   if (route.key === "vector") {

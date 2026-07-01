@@ -30,7 +30,7 @@ export const products: Product[] = [
     name: "Workflow",
     color: productColors.workflow,
     tagline: "Durable serverless functions",
-    enabled: false,
+    enabled: true,
   },
   {
     key: "vector",

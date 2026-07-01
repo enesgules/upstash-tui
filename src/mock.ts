@@ -1,6 +1,7 @@
 import type { RedisDatabase } from "./types.ts"
 import type { QStashSchedule, QStashUrlGroup, QStashDlqMessage } from "./api/qstash.ts"
 import type { VectorIndex } from "./api/vector.ts"
+import type { WorkflowRun } from "./api/workflow.ts"
 
 const GB = 1024 ** 3
 
@@ -118,3 +119,18 @@ export const mockIndexes: VectorIndex[] = [
   { id: "idx_search", name: "context7-search", region: "eu-west-1", dimensions: 1024, similarityFunction: "DOT_PRODUCT", type: "DENSE", endpoint: "context7-search-67890.upstash.io" },
   { id: "idx_hybrid", name: "context7-hybrid", region: "us-east-1", dimensions: null, similarityFunction: null, type: "SPARSE", endpoint: "context7-hybrid-24680.upstash.io" },
 ]
+
+export const mockWorkflowRuns: WorkflowRun[] = [
+  { id: "wfr_8f21", url: "https://context7.com/api/workflow/index-repo", state: "RUN_SUCCESS", createdAt: 1719835200000 },
+  { id: "wfr_7c04", url: "https://context7.com/api/workflow/index-repo", state: "RUN_STARTED", createdAt: 1719835100000 },
+  { id: "wfr_5a9b", url: "https://context7.com/api/workflow/summarize-docs", state: "RUN_SUCCESS", createdAt: 1719834800000 },
+  { id: "wfr_3d12", url: "https://context7.com/api/workflow/summarize-docs", state: "RUN_FAILED", createdAt: 1719834600000 },
+  { id: "wfr_1e77", url: "https://context7.com/api/workflow/embed-batch", state: "RUN_SUCCESS", createdAt: 1719834200000 },
+]
+
+export const mockWorkflowMetrics = {
+  messages: 0,
+  runs: mockWorkflowRuns.length,
+  bandwidthBytes: 32 * 1024,
+  cost: 0.01,
+}
