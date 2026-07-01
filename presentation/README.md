@@ -16,7 +16,7 @@ cd talktui && bun install
 Then present this deck (use the absolute path to `upstash-tui.md`):
 
 ```bash
-bun run deck /ABS/PATH/upstash-tui/presentation/upstash-tui.md --theme tokyonight
+bun run deck /Users/abdullahenesgules/Upstash/project-x/upstash-tui/presentation/upstash-tui.md --theme tokyonight
 ```
 
 ## Compare themes

@@ -1,6 +1,6 @@
+# upstash-tui
 ---
 layout: cover
-title: upstash-tui
 subtitle: Your Upstash resources, without leaving the terminal
 author: Upstash
 date: 2026
@@ -14,8 +14,6 @@ layout: statement
 ---
 
 Developers live in the terminal.
-
-<!-- stop -->
 
 The web console is a context switch — new tab, click through menus, lose your flow.
 
@@ -91,8 +89,6 @@ layout: statement
 ---
 
 "Rename this database to prod-cache and set a $50 budget."
-
-<!-- stop -->
 
 → becomes an operation plan you preview and confirm. Nothing runs unprompted.
 
