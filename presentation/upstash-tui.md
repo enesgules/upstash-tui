@@ -23,7 +23,7 @@ layout: section
 subtitle: A full TUI for managing Upstash — built on Bun + OpenTUI React
 ---
 
-Your databases, usage, and actions. All keyboard-driven, all in the terminal.
+Redis, QStash, Workflow, and Vector — usage and actions, all keyboard-driven.
 
 # The Dashboard
 ---
@@ -60,20 +60,18 @@ Usage bars ramp with pressure:  ▓▓▓▓▓▓▓░░  green → amber →
 See you're near a limit without ever opening the billing page.
 :::
 
-# Env Generation
+# One Console, Every Product
 ---
-layout: code
-subtitle: Bridge the console to your codebase
+layout: default
+subtitle: Switch products with a keypress — Box coming soon
 ---
 
-```ini [.env] lines title="Generated for you"
-# Upstash Redis — my-cache
-UPSTASH_REDIS_REST_URL=https://apn1-lively-cat-12345.upstash.io
-UPSTASH_REDIS_REST_TOKEN=AX…redacted
-REDIS_URL=rediss://default:••••@apn1-lively-cat-12345.upstash.io:6379
-```
-
-One action turns a database into paste-ready credentials.
+| Product | In the terminal |
+| --- | --- |
+| Redis | databases · usage bars · sparklines |
+| QStash | schedules · topics · publish |
+| Workflow | recent runs |
+| Vector | indexes |
 
 # The AI Command Bar
 ---
@@ -110,13 +108,12 @@ layout: code
 subtitle: Safeguard 2 · the model can't invent operations
 ---
 
-```ts [src/operations/validate.ts] {1-8,11} lines title="Every plan is validated"
+```ts [src/operations/validate.ts] {1-7,10} lines title="Every plan is validated"
 const OP_TYPES = [
   "redis.create",
   "redis.rename",
   "redis.toggleEviction",
   "redis.updateBudget",
-  "redis.generateEnv",
   "redis.delete",
 ] as const
 
@@ -133,7 +130,7 @@ subtitle: Safeguard 3 · destructive power stays in human hands
 ---
 
 Deleting a database is a real operation — tagged `destructive`, "cannot be undone."
-But the planner is explicitly forbidden from ever generating one.
+The planner is told never to generate one — and if the model tries anyway, the code refuses it.
 
 | Risk | Example | Confirm |
 | --- | --- | --- |
@@ -172,7 +169,7 @@ Stack
 - Bun runtime
 - OpenTUI + React 19
 - Developer API (Basic auth)
-- OpenRouter for the planner
+- OpenRouter · Opus 4.8 planner
 
 ::right::
 
@@ -180,10 +177,9 @@ Modules
 
 | dir | role |
 | --- | --- |
-| api/ | Upstash + provider clients |
+| api/ | Redis · QStash · Workflow · Vector |
 | ai/ | natural language → plan |
 | operations/ | validate · build · execute |
-| generators/ | env snippets |
 | tui/ | views + components |
 
 # upstash-tui
