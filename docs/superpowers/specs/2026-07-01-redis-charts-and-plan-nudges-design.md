@@ -36,24 +36,45 @@ fidelity than needed) and third-party TUI chart libs (dependency risk, poor fit
 with the JSX model). Block-character rendering is the terminal-native idiom,
 trivially unit-testable as pure string functions, and clean at small sizes.
 
+## Builds on existing API scaffolding
+
+The parallel API branch already added `src/api/upstash.ts` with `RawRedisDatabase`,
+`mapDatabase(raw)`, and list/get/create/rename/eviction/budget/delete calls. This
+feature aligns to that layer rather than inventing a separate shape:
+
+- `types.ts` already carries `eviction`; operations already include `redis.delete`.
+- There is **no** stats endpoint yet. This feature defines the shared stats type;
+  the actual `getDatabaseStats` fetcher is the parallel branch's integration point.
+
 ## Data model changes
 
-`src/types.ts` — extend `RedisDatabase`:
+`src/types.ts` — add a shared stats type and extend `RedisDatabase`:
 
 ```ts
-prodPack: boolean                                   // from get_database
-stats: { throughput: { x: number; y: number }[] }   // get_database_stats shape
+export type MetricPoint = { x: number; y: number }   // get_database_stats point shape
+export type RedisStats = { throughput: MetricPoint[] }  // room for latency/hits/etc later
+
+// on RedisDatabase:
+prodPack: boolean            // Prod Pack activated (from get_database raw payload)
+stats?: RedisStats           // optional: mock now, getDatabaseStats() later
 ```
 
-- `stats.throughput` uses `{ x, y }` points because that is the actual shape the
-  Upstash stats API returns for time-series arrays. The sparkline reads `y`.
+- `MetricPoint` uses `{ x, y }` because that is the actual shape the Upstash stats
+  API returns for time-series arrays. The sparkline reads `y`.
+- `stats` is **optional** so the list can render synchronously; components treat
+  `stats === undefined` as "no data" (blank spark). The live dashboard populates
+  it via the parallel `getDatabaseStats` fetcher.
 - Usage bars need **no** new fields — they reuse the existing
   `commands` / `storage` / `cost` `{ used, limit }` pairs.
 
+`src/api/upstash.ts` — `mapDatabase` sets `prodPack` from the raw payload
+(default `false`) so the type stays satisfied. One-line addition; `stats` is left
+`undefined` there (fetched separately).
+
 `src/mock.ts` — add `prodPack` and a short `stats.throughput` series (~14 points)
 to each mock database. Give them distinct shapes (spiky, ramping, flat) so the
-sparklines visibly differ. Set `prodPack: true` on at least one Fixed-plan DB and
-`false` on the Pay-as-You-Go ones, mirroring the console screenshots.
+sparklines visibly differ. Set `prodPack: true` on at least one DB and `false` on
+others, mirroring the console screenshots.
 
 ## New components (all pure / presentational)
 
@@ -63,7 +84,8 @@ is testable in isolation.
 ### `Sparkline`
 - Props: `values: number[]`, `color: string`, `width?: number`.
 - Normalizes `values` across `min..max`; maps each to a block char. Flat series
-  (min === max) renders a mid-height baseline. Empty series renders blanks.
+  (min === max) renders a mid-height baseline. Empty / missing series (`stats`
+  undefined → `values: []`) renders blanks.
 - If `values.length > width`, sample/bucket down to `width` points.
 - Renders a single `<text fg={color}>`.
 
@@ -128,7 +150,9 @@ Components render via existing OpenTUI React patterns; no snapshot infra added.
 
 ## Files touched
 
-- `src/types.ts` — extend `RedisDatabase`.
+- `src/types.ts` — add `MetricPoint` / `RedisStats`; extend `RedisDatabase` with
+  `prodPack` + optional `stats`.
+- `src/api/upstash.ts` — `mapDatabase` sets `prodPack` (default `false`).
 - `src/mock.ts` — add `prodPack` + `stats.throughput` per DB.
 - `src/tui/components/Sparkline.tsx` — new.
 - `src/tui/components/UsageBar.tsx` — new.
