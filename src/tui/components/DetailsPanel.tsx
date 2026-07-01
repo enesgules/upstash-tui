@@ -1,15 +1,7 @@
 import { theme } from "../../theme.ts"
 import { formatBudget, formatCount, formatStorage } from "../../format.ts"
 import type { RedisDatabase } from "../../types.ts"
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <box style={{ flexDirection: "row" }}>
-      <text fg={theme.textDim}>{label.padEnd(12)}</text>
-      <text fg={theme.textBright}>{value}</text>
-    </box>
-  )
-}
+import { UsageBar } from "./UsageBar.tsx"
 
 export function DetailsPanel({ db }: { db: RedisDatabase }) {
   return (
@@ -28,10 +20,13 @@ export function DetailsPanel({ db }: { db: RedisDatabase }) {
     >
       <text fg={theme.textDim}>{`${db.plan} · ${db.provider} · ${db.region}`}</text>
       <box style={{ flexDirection: "column", marginTop: 1 }}>
-        <Row label="Commands" value={formatCount(db.commands.used, db.commands.limit)} />
-        <Row label="Storage" value={formatStorage(db.storage.usedBytes, db.storage.limitBytes)} />
-        <Row label="Cost" value={formatBudget(db.cost.current, db.cost.budget)} />
-        <Row label="Eviction" value={db.eviction ? "Enabled" : "Disabled"} />
+        <UsageBar label="Commands" used={db.commands.used} limit={db.commands.limit} format={formatCount} />
+        <UsageBar label="Storage" used={db.storage.usedBytes} limit={db.storage.limitBytes} format={formatStorage} />
+        <UsageBar label="Cost" used={db.cost.current} limit={db.cost.budget} format={formatBudget} />
+        <box style={{ flexDirection: "row" }}>
+          <text fg={theme.textDim}>{"Eviction".padEnd(9)}</text>
+          <text fg={theme.textBright}>{db.eviction ? "Enabled" : "Disabled"}</text>
+        </box>
       </box>
     </box>
   )
