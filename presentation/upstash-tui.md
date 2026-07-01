@@ -34,7 +34,7 @@ subtitle: Everything keyboard-driven
 Resource list
 
 - databases at a glance
-- per-DB sparklines &nbsp; ▁▂▃▄▅▆▇█
+- per-DB sparklines   ▁▂▃▄▅▆▇█
 - live traffic shape
 
 ::right::
@@ -51,7 +51,7 @@ layout: default
 subtitle: Notice limits before billing does
 ---
 
-Usage bars ramp with pressure: &nbsp; ▓▓▓▓▓▓▓░░ &nbsp; green → amber → red
+Usage bars ramp with pressure:  ▓▓▓▓▓▓▓░░  green → amber → red
 
 - budgets tracked per database
 - contextual Prod Pack / Enterprise nudges
@@ -92,10 +92,10 @@ layout: statement
 
 → becomes an operation plan you preview and confirm. Nothing runs unprompted.
 
-# Safeguard 1 — Credential-Free
+# Credential-Free
 ---
 layout: default
-subtitle: The model never touches your secrets
+subtitle: Safeguard 1 · the model never touches your secrets
 ---
 
 The LLM only emits a JSON plan. It never sees — and never needs — your credentials.
@@ -104,10 +104,10 @@ The LLM only emits a JSON plan. It never sees — and never needs — your crede
 Auth happens on your machine, after you confirm. The planner works blind.
 :::
 
-# Safeguard 2 — Strict Allowlist
+# Strict Allowlist
 ---
 layout: code
-subtitle: The model can't invent operations
+subtitle: Safeguard 2 · the model can't invent operations
 ---
 
 ```ts [src/operations/validate.ts] {1-8,11} lines title="Every plan is validated"
@@ -126,10 +126,10 @@ if (!OP_TYPES.includes(type)) fail(`unknown op type: ${type}`)
 
 Anything outside this list is rejected before it can execute.
 
-# Safeguard 3 — The AI Can't Delete
+# The AI Cannot Delete
 ---
 layout: default
-subtitle: Destructive power stays in human hands
+subtitle: Safeguard 3 · destructive power stays in human hands
 ---
 
 Deleting a database is a real operation — tagged `destructive`, "cannot be undone."
@@ -186,7 +186,7 @@ Modules
 | generators/ | env snippets |
 | tui/ | views + components |
 
-# One More Thing
+# upstash-tui
 ---
 layout: quote
 ---
