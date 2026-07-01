@@ -23,7 +23,7 @@ layout: center
 subtitle: A terminal UI for AWS · 2.2k stars · Rust · Vim-style
 ---
 
-![taws — terminal UI for AWS](assets/taws-ec2.png){width=80 height=22 fit=contain caption="huseyinbabal/taws — resource list + confirm-before-action"}
+![taws — terminal UI for AWS](assets/taws-ec2.png){width=90 height=22 fit=contain caption="huseyinbabal/taws — resource list + confirm-before-action"}
 
 # Meet upstash-tui
 ---
@@ -195,4 +195,4 @@ Modules
 layout: quote
 ---
 
-> Build the console the way developers already work.
+Build the console the way developers already work.
