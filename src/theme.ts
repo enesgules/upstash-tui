@@ -13,13 +13,13 @@ export const theme = {
   warn: "#FBBF24",
 } as const
 
-// Per-product accent colors, built around the Upstash emerald.
+// Per-product accent colors, matching Upstash brand marks.
 export const productColors = {
-  redis: "#00E9A3",
-  qstash: "#8B5CF6",
-  workflow: "#3B82F6",
+  redis: "#F23F2C",
+  qstash: "#3B82F6",
+  workflow: "#8B5CF6",
   vector: "#F97316",
-  box: "#EC4899",
+  box: "#00E9A3",
 } as const
 
 export const layout = {
