@@ -192,7 +192,7 @@ export function RedisDashboard({
       </box>
 
       <text fg={theme.textFaint}>
-        ↑↓ select · e eviction · g env · d delete · r refresh{openrouter ? " · / ask AI" : ""} · esc home
+        ↑↓ select · tab switch product · e eviction · g env · d delete · r refresh{openrouter ? " · / ask AI" : ""} · esc home
       </text>
 
       <CommandBar
