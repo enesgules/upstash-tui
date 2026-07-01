@@ -1,6 +1,6 @@
 export type UpstashCreds = { email: string; apiKey: string }
 export type OpenRouterCreds = { apiKey: string; model: string }
-export type QStashCreds = { token: string }
+export type QStashCreds = { token: string; baseUrl?: string }
 export type Config = {
   upstash: UpstashCreds | null
   openrouter: OpenRouterCreds | null
@@ -26,7 +26,10 @@ export function loadConfig(): Config {
     : null
 
   const qstashToken = readEnv("QSTASH_TOKEN")
-  const qstash: QStashCreds | null = qstashToken ? { token: qstashToken } : null
+  const qstashUrl = readEnv("QSTASH_URL")
+  const qstash: QStashCreds | null = qstashToken
+    ? { token: qstashToken, baseUrl: qstashUrl || undefined }
+    : null
 
   return { upstash, openrouter, qstash }
 }

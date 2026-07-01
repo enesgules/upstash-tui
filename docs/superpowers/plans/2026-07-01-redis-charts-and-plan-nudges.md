@@ -532,7 +532,10 @@ Expected: the details panel now shows a wide throughput sparkline, a purple `✓
 - [ ] **Step 6: Full test + typecheck sweep**
 
 Run: `bun test && bun run typecheck`
-Expected: all tests PASS; no `tsc` errors.
+Expected: no `tsc` errors, and the only failing test is the pre-existing,
+unrelated `config.test.ts › openrouter key present without model -> default model
+applied` (OpenRouter default-model mismatch, not touched by this feature). All
+`charts`, `mock`, `format`, and other suites PASS.
 
 - [ ] **Step 7: Commit**
 

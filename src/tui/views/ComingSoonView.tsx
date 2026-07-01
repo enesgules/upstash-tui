@@ -4,11 +4,20 @@ import { theme, layout } from "../../theme.ts"
 import { getProduct, type ProductKey } from "../../products.ts"
 import { ProductNav } from "../components/ProductNav.tsx"
 
-export function ComingSoonView({ productKey, onBack }: { productKey: ProductKey; onBack: () => void }) {
+export function ComingSoonView({
+  productKey,
+  onBack,
+  onCycle,
+}: {
+  productKey: ProductKey
+  onBack: () => void
+  onCycle: (delta: number) => void
+}) {
   const product = getProduct(productKey)
 
   useKeyboard((key) => {
     if (key.name === "escape") onBack()
+    else if (key.name === "tab") onCycle(key.shift ? -1 : 1)
   })
 
   return (

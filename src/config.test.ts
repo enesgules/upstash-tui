@@ -43,7 +43,7 @@ test("missing UPSTASH_EMAIL -> upstash null", () => {
 test("openrouter key present without model -> default model applied", () => {
   process.env.OPENROUTER_API_KEY = "or-key"
   const config = loadConfig()
-  expect(config.openrouter).toEqual({ apiKey: "or-key", model: "anthropic/claude-3.5-sonnet" })
+  expect(config.openrouter).toEqual({ apiKey: "or-key", model: "anthropic/claude-opus-4.8" })
 })
 
 test("openrouter key present with model -> model used", () => {

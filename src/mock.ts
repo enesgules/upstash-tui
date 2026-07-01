@@ -78,10 +78,30 @@ export const redisSummary = {
 }
 
 export const mockSchedules: QStashSchedule[] = [
-  { id: "scd_daily_digest", cron: "0 9 * * *", destination: "https://api.context7.com/cron/digest", paused: false, createdAt: 1717200000000 },
-  { id: "scd_cleanup", cron: "*/15 * * * *", destination: "https://api.context7.com/cron/cleanup", paused: false, createdAt: 1717200000000 },
-  { id: "scd_billing", cron: "0 0 1 * *", destination: "https://api.context7.com/cron/billing", paused: true, createdAt: 1717200000000 },
+  { id: "scd_entra", cron: "*/10 * * * *", destination: "https://context7.com/api/qstash/entra-group-sync", paused: false, createdAt: 1717200000000 },
+  { id: "scd_daily_stats", cron: "0 0 * * *", destination: "https://context7.com/api/qstash/daily-stats", paused: false, createdAt: 1717200000000 },
+  { id: "scd_mcp_stats", cron: "0 0 * * *", destination: "https://context7.com/api/qstash/mcp-stats", paused: false, createdAt: 1717200000000 },
+  { id: "scd_cli_stats", cron: "0 0 * * *", destination: "https://context7.com/api/qstash/cli-stats", paused: false, createdAt: 1717200000000 },
+  { id: "scd_quota", cron: "0 0 * * *", destination: "https://context7.com/api/qstash/free-quota-bonus", paused: false, createdAt: 1717200000000 },
+  { id: "scd_cleanup", cron: "0 3 * * *", destination: "https://context7.com/api/qstash/private-repos-cleanup", paused: false, createdAt: 1717200000000 },
+  { id: "scd_billing", cron: "0 0 1 * *", destination: "https://context7.com/api/qstash/billing", paused: true, createdAt: 1717200000000 },
 ]
+
+export const mockQStashMetrics = {
+  messages: 470,
+  workflowRuns: 0,
+  bandwidthBytes: 32 * 1024,
+  cost: 0.01,
+}
+
+export const mockVectorMetrics = {
+  count: 318_000_000,
+  requests: 5_900_000,
+  bandwidthBytes: 89 * GB,
+  reranks: 0,
+  storageBytes: 2 * 1024 ** 4,
+  cost: 0.24,
+}
 
 export const mockUrlGroups: QStashUrlGroup[] = [
   { name: "notifications", endpointCount: 3, createdAt: 1717200000000, updatedAt: 1717200000000 },

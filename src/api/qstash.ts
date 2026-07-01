@@ -1,11 +1,19 @@
 import { apiRequest } from "./http.ts"
 
-const BASE_URL = "https://qstash.upstash.io/v2"
+const DEFAULT_BASE_URL = "https://qstash.upstash.io/v2"
 
-export type QStashCreds = { token: string }
+export type QStashCreds = { token: string; baseUrl?: string }
 
 function auth(creds: QStashCreds): string {
   return `Bearer ${creds.token}`
+}
+
+// Management API is global by default; an override (e.g. a regional URL) is
+// normalized to include the /v2 path segment.
+function base(creds: QStashCreds): string {
+  const url = creds.baseUrl?.replace(/\/+$/, "")
+  if (!url) return DEFAULT_BASE_URL
+  return url.endsWith("/v2") ? url : `${url}/v2`
 }
 
 /**
@@ -52,7 +60,7 @@ export function mapSchedule(raw: RawQStashSchedule): QStashSchedule {
 export async function listSchedules(creds: QStashCreds): Promise<QStashSchedule[]> {
   const raw = await apiRequest<RawQStashSchedule[] | Record<string, unknown>>({
     method: "GET",
-    url: `${BASE_URL}/schedules`,
+    url: `${base(creds)}/schedules`,
     auth: auth(creds),
   })
   return normalizeList<RawQStashSchedule>(raw, "schedules").map(mapSchedule)
@@ -93,7 +101,7 @@ export function mapUrlGroup(raw: RawQStashUrlGroup): QStashUrlGroup {
 export async function listUrlGroups(creds: QStashCreds): Promise<QStashUrlGroup[]> {
   const raw = await apiRequest<RawQStashUrlGroup[] | Record<string, unknown>>({
     method: "GET",
-    url: `${BASE_URL}/topics`,
+    url: `${base(creds)}/topics`,
     auth: auth(creds),
   })
   return normalizeList<RawQStashUrlGroup>(raw, "urlGroups").map(mapUrlGroup)
@@ -134,7 +142,7 @@ export function mapDlqMessage(raw: RawQStashDlqMessage): QStashDlqMessage {
 export async function listDlqMessages(creds: QStashCreds): Promise<QStashDlqMessage[]> {
   const raw = await apiRequest<RawQStashDlqMessage[] | Record<string, unknown>>({
     method: "GET",
-    url: `${BASE_URL}/dlq`,
+    url: `${base(creds)}/dlq`,
     auth: auth(creds),
   })
   return normalizeList<RawQStashDlqMessage>(raw, "messages").map(mapDlqMessage)

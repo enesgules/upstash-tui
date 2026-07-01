@@ -37,11 +37,13 @@ export function RedisDashboard({
   creds,
   openrouter,
   onHome,
+  onCycle,
 }: {
   mode: Mode
   creds: UpstashCreds | null
   openrouter: OpenRouterCreds | null
   onHome: () => void
+  onCycle: (delta: number) => void
 }) {
   const [databases, setDatabases] = useState<RedisDatabase[]>(mode === "demo" ? mockDatabases : [])
   const [loading, setLoading] = useState(mode === "live")
@@ -141,6 +143,8 @@ export function RedisDashboard({
 
     if (key.name === "escape") {
       onHome()
+    } else if (key.name === "tab") {
+      onCycle(key.shift ? -1 : 1)
     } else if (key.name === "up" || key.name === "k") {
       setSelectedIndex((i) => Math.max(0, i - 1))
     } else if (key.name === "down" || key.name === "j") {

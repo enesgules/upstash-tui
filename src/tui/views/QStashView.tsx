@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react"
 import { useKeyboard } from "@opentui/react"
-import { TextAttributes } from "@opentui/core"
 import { theme, layout, productColors } from "../../theme.ts"
+import { formatBytes, formatCompactNumber, formatCost } from "../../format.ts"
 import type { QStashCreds } from "../../config.ts"
 import type { QStashSchedule, QStashUrlGroup, QStashDlqMessage } from "../../api/qstash.ts"
 import { listSchedules, listUrlGroups, listDlqMessages } from "../../api/qstash.ts"
-import { mockSchedules, mockUrlGroups, mockDlq } from "../../mock.ts"
+import { mockSchedules, mockUrlGroups, mockDlq, mockQStashMetrics } from "../../mock.ts"
 import { ProductNav } from "../components/ProductNav.tsx"
+import { MetricCards, type MetricItem } from "../components/MetricCards.tsx"
 
 const ACCENT = productColors.qstash
 
@@ -14,7 +15,15 @@ function host(url: string): string {
   return url.replace(/^https?:\/\//, "")
 }
 
-export function QStashView({ creds, onHome }: { creds: QStashCreds | null; onHome: () => void }) {
+export function QStashView({
+  creds,
+  onHome,
+  onCycle,
+}: {
+  creds: QStashCreds | null
+  onHome: () => void
+  onCycle: (delta: number) => void
+}) {
   const live = !!creds
   const [schedules, setSchedules] = useState<QStashSchedule[]>(live ? [] : mockSchedules)
   const [groups, setGroups] = useState<QStashUrlGroup[]>(live ? [] : mockUrlGroups)
@@ -49,8 +58,27 @@ export function QStashView({ creds, onHome }: { creds: QStashCreds | null; onHom
 
   useKeyboard((key) => {
     if (key.name === "escape") onHome()
+    else if (key.name === "tab") onCycle(key.shift ? -1 : 1)
     else if (key.name === "r") void load()
   })
+
+  const m = mockQStashMetrics
+  const metrics: MetricItem[] = live
+    ? [
+        { label: "Messages", value: "—" },
+        { label: "Workflow Runs", value: "—" },
+        { label: "Bandwidth", value: "—" },
+        { label: "Cost", value: "—" },
+      ]
+    : [
+        { label: "Messages", value: formatCompactNumber(m.messages), sub: `Today: ${m.messages} / Unlimited` },
+        { label: "Workflow Runs", value: String(m.workflowRuns), sub: "Today: 0" },
+        { label: "Bandwidth", value: formatBytes(m.bandwidthBytes), sub: `Today: ${formatBytes(m.bandwidthBytes)}` },
+        { label: "Cost", value: formatCost(m.cost), sub: "Budget: not set" },
+      ]
+
+  const activeCount = schedules.filter((s) => !s.paused).length
+  const pausedCount = schedules.length - activeCount
 
   return (
     <box
@@ -65,24 +93,14 @@ export function QStashView({ creds, onHome }: { creds: QStashCreds | null; onHom
     >
       <ProductNav activeKey="qstash" />
 
-      <box
-        title="QStash · Message queue & scheduler"
-        titleColor={theme.title}
-        style={{
-          border: true,
-          borderStyle: "rounded",
-          borderColor: theme.border,
-          backgroundColor: theme.bgPanel,
-          paddingLeft: 2,
-          paddingRight: 2,
-          flexDirection: "row",
-          gap: 6,
-        }}
-      >
-        <Metric label="Schedules" value={String(schedules.length)} />
-        <Metric label="URL Groups" value={String(groups.length)} />
-        <Metric label="DLQ" value={String(dlq.length)} />
+      <box style={{ flexDirection: "row", gap: 1, paddingLeft: 1 }}>
+        <text fg={ACCENT} attributes={1}>
+          QStash
+        </text>
+        <text fg={theme.textDim}>· Message queue & scheduler</text>
       </box>
+
+      <MetricCards metrics={metrics} />
 
       {error ? <text fg={theme.danger}>{error} — press r to retry.</text> : null}
 
@@ -91,7 +109,7 @@ export function QStashView({ creds, onHome }: { creds: QStashCreds | null; onHom
       ) : (
         <box style={{ flexDirection: "row", gap: layout.gap, flexGrow: 1 }}>
           <ListCard
-            title="Schedules"
+            title={`Schedules · ${activeCount} active / ${pausedCount} paused`}
             items={schedules.map((s) => `${s.paused ? "⏸" : "▶"} ${s.cron}  ${host(s.destination)}`)}
           />
           <ListCard
@@ -100,22 +118,13 @@ export function QStashView({ creds, onHome }: { creds: QStashCreds | null; onHom
           />
           <ListCard
             title="Dead-letter queue"
-            items={dlq.map((m) => `${m.responseStatus ?? "—"}  ${host(m.url)}`)}
+            items={dlq.map((d) => `${d.responseStatus ?? "—"}  ${host(d.url)}`)}
           />
         </box>
       )}
 
-      <text fg={theme.textFaint}>r refresh · esc home{live ? "" : "  ·  demo data — set QSTASH_TOKEN in .env for live"}</text>
-    </box>
-  )
-}
-
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <box style={{ flexDirection: "row", gap: 1 }}>
-      <text fg={theme.textDim}>{label}</text>
-      <text fg={theme.textBright} attributes={TextAttributes.BOLD}>
-        {value}
+      <text fg={theme.textFaint}>
+        tab switch product · r refresh · esc home{live ? "" : "  ·  demo data — set QSTASH_TOKEN in .env for live"}
       </text>
     </box>
   )

@@ -2,15 +2,25 @@ import { useEffect, useState } from "react"
 import { useKeyboard } from "@opentui/react"
 import { TextAttributes } from "@opentui/core"
 import { theme, layout, productColors } from "../../theme.ts"
+import { formatBytes, formatCompactNumber, formatCost } from "../../format.ts"
 import type { UpstashCreds } from "../../config.ts"
 import type { VectorIndex } from "../../api/vector.ts"
 import { listIndexes } from "../../api/vector.ts"
-import { mockIndexes } from "../../mock.ts"
+import { mockIndexes, mockVectorMetrics } from "../../mock.ts"
 import { ProductNav } from "../components/ProductNav.tsx"
+import { MetricCards, type MetricItem } from "../components/MetricCards.tsx"
 
 const ACCENT = productColors.vector
 
-export function VectorView({ creds, onHome }: { creds: UpstashCreds | null; onHome: () => void }) {
+export function VectorView({
+  creds,
+  onHome,
+  onCycle,
+}: {
+  creds: UpstashCreds | null
+  onHome: () => void
+  onCycle: (delta: number) => void
+}) {
   const live = !!creds
   const [indexes, setIndexes] = useState<VectorIndex[]>(live ? [] : mockIndexes)
   const [loading, setLoading] = useState(live)
@@ -39,12 +49,24 @@ export function VectorView({ creds, onHome }: { creds: UpstashCreds | null; onHo
 
   useKeyboard((key) => {
     if (key.name === "escape") onHome()
+    else if (key.name === "tab") onCycle(key.shift ? -1 : 1)
     else if (key.name === "r") void load()
     else if (key.name === "up" || key.name === "k") setSelectedIndex((i) => Math.max(0, i - 1))
     else if (key.name === "down" || key.name === "j") setSelectedIndex((i) => Math.min(indexes.length - 1, i + 1))
   })
 
   const selected = indexes[selectedIndex]
+  const v = mockVectorMetrics
+  const metrics: MetricItem[] = live
+    ? ["Count", "Requests", "Bandwidth", "Reranks", "Storage", "Cost"].map((label) => ({ label, value: "—" }))
+    : [
+        { label: "Count", value: formatCompactNumber(v.count), color: ACCENT },
+        { label: "Requests", value: formatCompactNumber(v.requests), color: ACCENT },
+        { label: "Bandwidth", value: formatBytes(v.bandwidthBytes), color: ACCENT },
+        { label: "Reranks", value: String(v.reranks) },
+        { label: "Storage", value: formatBytes(v.storageBytes), color: ACCENT },
+        { label: "Cost", value: formatCost(v.cost), color: theme.warn },
+      ]
 
   return (
     <box
@@ -59,25 +81,14 @@ export function VectorView({ creds, onHome }: { creds: UpstashCreds | null; onHo
     >
       <ProductNav activeKey="vector" />
 
-      <box
-        title="Vector · Serverless vector database"
-        titleColor={theme.title}
-        style={{
-          border: true,
-          borderStyle: "rounded",
-          borderColor: theme.border,
-          backgroundColor: theme.bgPanel,
-          paddingLeft: 2,
-          paddingRight: 2,
-          flexDirection: "row",
-          gap: 6,
-        }}
-      >
-        <text fg={theme.textDim}>Indexes</text>
-        <text fg={theme.textBright} attributes={TextAttributes.BOLD}>
-          {String(indexes.length)}
+      <box style={{ flexDirection: "row", gap: 1, paddingLeft: 1 }}>
+        <text fg={ACCENT} attributes={TextAttributes.BOLD}>
+          Vector
         </text>
+        <text fg={theme.textDim}>· Serverless vector database for high-performance search</text>
       </box>
+
+      <MetricCards metrics={metrics} />
 
       {error ? <text fg={theme.danger}>{error} — press r to retry.</text> : null}
 
@@ -108,6 +119,7 @@ export function VectorView({ creds, onHome }: { creds: UpstashCreds | null; onHo
                   <box
                     key={idx.id}
                     style={{
+                      flexDirection: "column",
                       backgroundColor: sel ? theme.accentDim : theme.bgPanel,
                       paddingLeft: 1,
                       paddingRight: 1,
@@ -116,6 +128,7 @@ export function VectorView({ creds, onHome }: { creds: UpstashCreds | null; onHo
                     <text fg={sel ? theme.textBright : theme.textDim} attributes={sel ? TextAttributes.BOLD : 0}>
                       {idx.name}
                     </text>
+                    <text fg={theme.textFaint}>{`${idx.region}  ·  ${idx.type ?? "—"}`}</text>
                   </box>
                 )
               })
@@ -150,7 +163,9 @@ export function VectorView({ creds, onHome }: { creds: UpstashCreds | null; onHo
         </box>
       )}
 
-      <text fg={theme.textFaint}>↑↓ select · r refresh · esc home{live ? "" : "  ·  demo data — set UPSTASH creds in .env for live"}</text>
+      <text fg={theme.textFaint}>
+        ↑↓ select · tab switch product · r refresh · esc home{live ? "" : "  ·  demo data — set UPSTASH creds for live"}
+      </text>
     </box>
   )
 }

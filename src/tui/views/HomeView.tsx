@@ -82,7 +82,6 @@ export function HomeView({ onOpen }: { onOpen: (key: ProductKey) => void }) {
       }}
     >
       <ascii-font text="UPSTASH" font="block" color={[theme.accent, theme.accentLight]} />
-      <text fg={theme.textDim}>terminal-native console</text>
 
       <box style={{ flexDirection: "column", alignItems: "center", gap: 1, marginTop: 1 }}>
         {rows.map((row, r) => (
