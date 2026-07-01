@@ -8,6 +8,18 @@ export type PlannerContext = {
 
 export type ChatFn = (system: string, user: string) => Promise<string>
 
+// Some models ignore response_format and wrap JSON in prose or ```json fences.
+// Pull out the JSON object so the planner works across models.
+function extractJson(raw: string): string {
+  let s = raw.trim()
+  const fence = s.match(/```(?:json)?\s*([\s\S]*?)```/i)
+  if (fence && fence[1]) s = fence[1].trim()
+  const first = s.indexOf("{")
+  const last = s.lastIndexOf("}")
+  if (first !== -1 && last > first) s = s.slice(first, last + 1)
+  return s
+}
+
 const SYSTEM_PROMPT_HEADER = `You are the planning engine behind an Upstash Redis TUI command bar. Given a
 natural-language request from the user, you produce a single JSON object describing an
 "operation plan" to be previewed and confirmed by the user before anything runs. You never
@@ -81,7 +93,7 @@ export async function planFromCommand(
 
   let parsed: unknown
   try {
-    parsed = JSON.parse(raw)
+    parsed = JSON.parse(extractJson(raw))
   } catch (error) {
     throw new Error(`Couldn't turn that into a valid plan: response wasn't valid JSON (${(error as Error).message})`)
   }

@@ -7,7 +7,8 @@ export type Config = {
   qstash: QStashCreds | null
 }
 
-const DEFAULT_OPENROUTER_MODEL = "anthropic/claude-3.5-sonnet"
+// JSON-native, cheap, and current — reliable for forced json_object output.
+const DEFAULT_OPENROUTER_MODEL = "openai/gpt-5-nano"
 
 function readEnv(name: string): string {
   return (process.env[name] ?? "").trim()
