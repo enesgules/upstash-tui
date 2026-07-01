@@ -28,6 +28,33 @@ export function sparkline(values: number[], width = 8): string {
     .join("")
 }
 
+// Vertical bar chart: returns `height` rows (top → bottom) of `width` block-char
+// columns. Bars are normalized against the max value with a zero baseline, so a
+// column's height reflects its magnitude. Empty input yields blank rows.
+export function barChart(values: number[], width = 24, height = 6): string[] {
+  const rows: string[] = Array.from({ length: height }, () => "")
+  if (values.length === 0) return rows
+
+  const pts = downsample(values, width)
+  const max = Math.max(...pts, 1)
+  const cols = pts.map((v) => (Math.max(0, v) / max) * height)
+
+  for (let r = 0; r < height; r++) {
+    // Row 0 is the top; measure how full the (height - r)-th cell from the
+    // bottom is for each column.
+    const cellFromBottom = height - r
+    let line = ""
+    for (const c of cols) {
+      const fill = c - (cellFromBottom - 1)
+      if (fill >= 1) line += "█"
+      else if (fill <= 0) line += " "
+      else line += BLOCKS[Math.max(0, Math.min(BLOCKS.length - 1, Math.round(fill * (BLOCKS.length - 1))))]
+    }
+    rows[r] = line
+  }
+  return rows
+}
+
 export function usageRatio(used: number | null, limit: number | null): number | null {
   if (used === null || limit === null || limit <= 0) return null
   return Math.max(0, Math.min(1, used / limit))

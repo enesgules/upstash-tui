@@ -1,13 +1,28 @@
+import { TextAttributes } from "@opentui/core"
 import { theme } from "../../theme.ts"
-import { formatBudget, formatCount, formatStorage } from "../../format.ts"
+import { formatBudget, formatCompactNumber, formatCount, formatStorage } from "../../format.ts"
 import type { RedisDatabase } from "../../types.ts"
 import { UsageBar } from "./UsageBar.tsx"
-import { Sparkline } from "./Sparkline.tsx"
+import { BarChart } from "./BarChart.tsx"
 import { ProdPackBadge } from "./ProdPackBadge.tsx"
 import { EnterpriseNudge } from "./EnterpriseNudge.tsx"
 
+function SectionLabel({ text }: { text: string }) {
+  return (
+    <text fg={theme.textFaint} attributes={TextAttributes.BOLD}>
+      {text}
+    </text>
+  )
+}
+
 export function DetailsPanel({ db }: { db: RedisDatabase }) {
   const throughput = db.stats?.throughput.map((p) => p.y) ?? []
+  const peak = throughput.length > 0 ? Math.max(...throughput) : 0
+  const avg =
+    throughput.length > 0
+      ? Math.round(throughput.reduce((s, v) => s + v, 0) / throughput.length)
+      : 0
+
   return (
     <box
       title={db.name}
@@ -20,13 +35,14 @@ export function DetailsPanel({ db }: { db: RedisDatabase }) {
         flexGrow: 1,
         flexDirection: "column",
         padding: 1,
+        gap: 1,
       }}
     >
-      <box style={{ flexDirection: "row", gap: 2 }}>
-        <text fg={theme.textDim}>{`${db.plan} · ${db.provider} · ${db.region}`}</text>
-        {db.synthetic ? <text fg={theme.textFaint}>~ sample metrics</text> : null}
-      </box>
-      <box style={{ flexDirection: "column", marginTop: 1 }}>
+      <text fg={theme.textDim}>{`${db.plan} · ${db.provider} · ${db.region}`}</text>
+
+      {/* Usage */}
+      <box style={{ flexDirection: "column" }}>
+        <SectionLabel text="USAGE" />
         <UsageBar label="Commands" used={db.commands.used} limit={db.commands.limit} format={formatCount} />
         <UsageBar label="Storage" used={db.storage.usedBytes} limit={db.storage.limitBytes} format={formatStorage} />
         <UsageBar label="Cost" used={db.cost.current} limit={db.cost.budget} format={formatBudget} />
@@ -35,15 +51,39 @@ export function DetailsPanel({ db }: { db: RedisDatabase }) {
           <text fg={theme.textBright}>{db.eviction ? "Enabled" : "Disabled"}</text>
         </box>
       </box>
-      <box style={{ flexDirection: "row", gap: 1, marginTop: 1 }}>
-        <text fg={theme.textDim}>Throughput</text>
+
+      {/* Activity */}
+      <box style={{ flexDirection: "column" }}>
+        <box style={{ flexDirection: "row", gap: 2 }}>
+          <SectionLabel text="THROUGHPUT" />
+          {throughput.length > 0 ? (
+            <text fg={theme.textFaint}>{`peak ${formatCompactNumber(peak)} · avg ${formatCompactNumber(avg)} ops/s`}</text>
+          ) : null}
+        </box>
         {throughput.length > 0 ? (
-          <Sparkline values={throughput} width={24} />
+          <BarChart values={throughput} width={48} height={7} />
         ) : (
           <text fg={theme.textFaint}>no recent activity</text>
         )}
       </box>
-      <box style={{ flexDirection: "row", gap: 3, marginTop: 1 }}>
+
+      {/* Spacer pushes the upgrade card to the bottom of the tall panel. */}
+      <box style={{ flexGrow: 1 }} />
+
+      {/* Plan / upgrade — deliberately prominent. */}
+      <box
+        title="Plan"
+        titleColor={theme.warn}
+        style={{
+          border: true,
+          borderStyle: "rounded",
+          borderColor: theme.border,
+          flexDirection: "column",
+          gap: 1,
+          paddingLeft: 1,
+          paddingRight: 1,
+        }}
+      >
         <ProdPackBadge active={db.prodPack} />
         <EnterpriseNudge />
       </box>

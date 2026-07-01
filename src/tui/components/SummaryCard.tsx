@@ -1,17 +1,6 @@
-import { TextAttributes } from "@opentui/core"
-import { theme } from "../../theme.ts"
+import { theme, layout } from "../../theme.ts"
 import { formatBytes, formatCompactNumber, formatCost } from "../../format.ts"
-
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <box style={{ flexDirection: "row", gap: 1 }}>
-      <text fg={theme.textDim}>{label}</text>
-      <text fg={theme.textBright} attributes={TextAttributes.BOLD}>
-        {value}
-      </text>
-    </box>
-  )
-}
+import { MetricCards } from "./MetricCards.tsx"
 
 export function SummaryCard({
   commands,
@@ -25,24 +14,18 @@ export function SummaryCard({
   synthetic?: boolean
 }) {
   return (
-    <box
-      title="Redis · Low-latency serverless key-value store"
-      titleColor={theme.title}
-      style={{
-        border: true,
-        borderStyle: "rounded",
-        borderColor: theme.border,
-        backgroundColor: theme.bgPanel,
-        paddingLeft: 2,
-        paddingRight: 2,
-        flexDirection: "row",
-        gap: 6,
-      }}
-    >
-      <Metric label="Commands" value={commands === null ? "—" : formatCompactNumber(commands)} />
-      <Metric label="Storage" value={storageBytes === null ? "—" : formatBytes(storageBytes)} />
-      <Metric label="Cost" value={cost === null ? "—" : formatCost(cost)} />
-      {synthetic ? <text fg={theme.textFaint}>~ sample metrics</text> : null}
+    <box style={{ flexDirection: "column", gap: layout.gap }}>
+      <box style={{ flexDirection: "row", justifyContent: "space-between", paddingLeft: 1, paddingRight: 1 }}>
+        <text fg={theme.title}>Redis · Low-latency serverless key-value store</text>
+        {synthetic ? <text fg={theme.textFaint}>~ demo data</text> : null}
+      </box>
+      <MetricCards
+        metrics={[
+          { label: "Commands", value: commands === null ? "—" : formatCompactNumber(commands), sub: "total" },
+          { label: "Storage", value: storageBytes === null ? "—" : formatBytes(storageBytes), sub: "used" },
+          { label: "Cost", value: cost === null ? "—" : formatCost(cost), sub: "this month" },
+        ]}
+      />
     </box>
   )
 }

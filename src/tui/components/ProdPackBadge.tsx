@@ -1,9 +1,14 @@
+import { TextAttributes } from "@opentui/core"
 import { theme, productColors } from "../../theme.ts"
 
 export function ProdPackBadge({ active }: { active: boolean }) {
   return active ? (
-    <text fg={productColors.workflow}>✓ Prod Pack</text>
+    <text fg={productColors.workflow} attributes={TextAttributes.BOLD}>
+      ✓ Prod Pack enabled
+    </text>
   ) : (
-    <text fg={theme.textFaint}>⚡ Enable Prod Pack</text>
+    <text fg={theme.accent} attributes={TextAttributes.BOLD}>
+      ⚡ Enable Prod Pack — production durability & higher limits
+    </text>
   )
 }
