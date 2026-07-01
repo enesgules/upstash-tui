@@ -22,15 +22,14 @@ export function ProductNav({ activeKey }: { activeKey: ProductKey }) {
     >
       {products.map((p) => {
         const active = p.key === activeKey
-        // Each product leads with its brand glyph (same marks as the home grid);
-        // not-yet-available products keep a trailing ○ "coming soon" signal.
+        // Each product leads with its brand glyph (same marks as the home grid).
         return (
           <text
             key={p.key}
             fg={active ? p.color : theme.textFaint}
             attributes={active ? TextAttributes.BOLD : 0}
           >
-            {p.enabled ? `${p.glyph} ${p.name}` : `${p.glyph} ${p.name} ○`}
+            {`${p.glyph} ${p.name}`}
           </text>
         )
       })}

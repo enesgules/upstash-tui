@@ -81,8 +81,7 @@ themes are the shortlist. Final theme choice is deferred to the presenter.
 | 10 | Safeguard 2 — strict allowlist | `code` | Real `OP_TYPES` snippet from `src/operations/validate.ts` with `lines` + `title`. Anything outside the fixed list is rejected — the model can't invent operations. |
 | 11 | Safeguard 3 — the AI can't delete | `default` | Destructive ops *do* exist (deleting a database, `risk: "destructive"`, "cannot be undone"), but only through a deliberate human action — the AI planner is explicitly barred from generating one. Every op is tagged `safe` / `paid` / `destructive` and requires confirmation. `:::warning` on the destructive tag; small pipe table of the three risk levels. |
 | 12 | End-to-end flow | `center` | `mermaid` flowchart: Natural language → LLM planner → JSON plan → allowlist validate → preview + risk → user confirms → execute. |
-| 13 | How it's built | `two-cols` | Left: stack (Bun runtime, OpenTUI React, React 19, Developer API over Basic auth, OpenRouter for the planner). Right (`::right::`): module map table (`api/`, `ai/`, `operations/`, `generators/`, `tui/`). |
-| 14 | Close | `quote` | Vision line, e.g. "Build the console the way developers already work." |
+| 13 | Close | `quote` | Vision line, e.g. "Build the console the way developers already work." |
 
 ## Content sourcing (facts to pull from the codebase, verbatim where quoted)
 

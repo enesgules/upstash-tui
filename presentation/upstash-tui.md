@@ -147,21 +147,6 @@ The planner is told never to generate one — and if the model tries anyway, the
 Delete happens only through a deliberate human action, never from a prompt.
 :::
 
-# How It's Built
----
-layout: default
-subtitle: Small, testable modules
----
-
-Bun · OpenTUI + React 19 · Developer API (Basic auth) · OpenRouter Opus 4.8
-
-| dir | role |
-| --- | --- |
-| api/ | Redis · QStash · Workflow · Vector clients |
-| ai/ | natural language → plan |
-| operations/ | validate · build · execute |
-| tui/ | views + components |
-
 # Roadmap
 ---
 layout: default
