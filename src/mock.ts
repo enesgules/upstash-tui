@@ -50,7 +50,7 @@ export const databases: RedisDatabase[] = [
 ]
 
 export const redisSummary = {
-  commands: databases.reduce((s, d) => s + d.commands.used, 0),
-  storageBytes: databases.reduce((s, d) => s + d.storage.usedBytes, 0),
-  cost: databases.reduce((s, d) => s + d.cost.current, 0),
+  commands: databases.reduce((s, d) => s + (d.commands.used ?? 0), 0),
+  storageBytes: databases.reduce((s, d) => s + (d.storage.usedBytes ?? 0), 0),
+  cost: databases.reduce((s, d) => s + (d.cost.current ?? 0), 0),
 }

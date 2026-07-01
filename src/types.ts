@@ -7,9 +7,9 @@ export type RedisDatabase = {
   provider: string
   region: string
   pinned: boolean
-  commands: { used: number; limit: number | null }
-  storage: { usedBytes: number; limitBytes: number | null }
-  cost: { current: number; budget: number | null }
+  commands: { used: number | null; limit: number | null }
+  storage: { usedBytes: number | null; limitBytes: number | null }
+  cost: { current: number | null; budget: number | null }
 }
 
 export type OperationPlan = {

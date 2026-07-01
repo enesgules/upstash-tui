@@ -31,17 +31,20 @@ export function formatCost(dollars: number): string {
   return `$${dollars.toFixed(2)}`
 }
 
-export function formatCount(used: number, limit: number | null): string {
+export function formatCount(used: number | null, limit: number | null): string {
   const right = limit === null ? "Unlimited" : formatCompactNumber(limit)
-  return `${formatCompactNumber(used)} / ${right}`
+  const left = used === null ? "—" : formatCompactNumber(used)
+  return `${left} / ${right}`
 }
 
-export function formatStorage(usedBytes: number, limitBytes: number | null): string {
+export function formatStorage(usedBytes: number | null, limitBytes: number | null): string {
   const right = limitBytes === null ? "Unlimited" : formatBytes(limitBytes)
-  return `${formatBytes(usedBytes)} / ${right}`
+  const left = usedBytes === null ? "—" : formatBytes(usedBytes)
+  return `${left} / ${right}`
 }
 
-export function formatBudget(current: number, budget: number | null): string {
+export function formatBudget(current: number | null, budget: number | null): string {
   const right = budget === null ? "No budget" : formatCost(budget)
-  return `${formatCost(current)} / ${right}`
+  const left = current === null ? "—" : formatCost(current)
+  return `${left} / ${right}`
 }

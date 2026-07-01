@@ -16,9 +16,9 @@ test("at least one database is pinned", () => {
 })
 
 test("redisSummary aggregates the databases", () => {
-  const commands = databases.reduce((s, d) => s + d.commands.used, 0)
-  const storage = databases.reduce((s, d) => s + d.storage.usedBytes, 0)
-  const cost = databases.reduce((s, d) => s + d.cost.current, 0)
+  const commands = databases.reduce((s, d) => s + (d.commands.used ?? 0), 0)
+  const storage = databases.reduce((s, d) => s + (d.storage.usedBytes ?? 0), 0)
+  const cost = databases.reduce((s, d) => s + (d.cost.current ?? 0), 0)
   expect(redisSummary.commands).toBe(commands)
   expect(redisSummary.storageBytes).toBe(storage)
   expect(redisSummary.cost).toBeCloseTo(cost, 5)

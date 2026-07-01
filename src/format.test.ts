@@ -31,14 +31,18 @@ test("formatCost", () => {
 test("formatCount", () => {
   expect(formatCount(2_000_000, null)).toBe("2M / Unlimited")
   expect(formatCount(2_000_000, 10_000_000)).toBe("2M / 10M")
+  expect(formatCount(null, 10_000_000)).toBe("— / 10M")
+  expect(formatCount(null, null)).toBe("— / Unlimited")
 })
 
 test("formatStorage", () => {
   expect(formatStorage(3 * 1024 ** 3, 100 * 1024 ** 3)).toBe("3 GB / 100 GB")
   expect(formatStorage(3 * 1024 ** 3, null)).toBe("3 GB / Unlimited")
+  expect(formatStorage(null, 100 * 1024 ** 3)).toBe("— / 100 GB")
 })
 
 test("formatBudget", () => {
   expect(formatBudget(4.14, 5000)).toBe("$4.14 / $5000.00")
   expect(formatBudget(4.14, null)).toBe("$4.14 / No budget")
+  expect(formatBudget(null, 5000)).toBe("— / $5000.00")
 })
