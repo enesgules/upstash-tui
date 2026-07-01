@@ -6,7 +6,9 @@ export type MetricItem = { label: string; value: string; sub?: string; color?: s
 // A row of console-style summary cards: UPPERCASE label, big value, sub line.
 export function MetricCards({ metrics }: { metrics: MetricItem[] }) {
   return (
-    <box style={{ flexDirection: "row", gap: layout.gap }}>
+    // Wrap so many-metric views (e.g. Vector's 6 cards) flow onto multiple rows
+    // instead of overflowing and clipping the rightmost card off-screen.
+    <box style={{ flexDirection: "row", flexWrap: "wrap", gap: layout.gap }}>
       {metrics.map((m) => (
         <box
           key={m.label}
@@ -16,7 +18,7 @@ export function MetricCards({ metrics }: { metrics: MetricItem[] }) {
             borderColor: theme.border,
             backgroundColor: theme.bgPanel,
             flexGrow: 1,
-            flexBasis: 1,
+            flexBasis: 18,
             flexDirection: "column",
             paddingLeft: 1,
             paddingRight: 1,
