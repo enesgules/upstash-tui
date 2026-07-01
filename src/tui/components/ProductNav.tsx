@@ -1,18 +1,13 @@
 import { TextAttributes } from "@opentui/core"
 import { theme } from "../../theme.ts"
+import { products, type ProductKey } from "../../products.ts"
 
-const PRODUCTS = [
-  { name: "Redis", active: true, badge: "" },
-  { name: "QStash", active: false, badge: "" },
-  { name: "Workflow", active: false, badge: "" },
-  { name: "Vector", active: false, badge: "" },
-  { name: "Box", active: false, badge: "NEW" },
-]
-
-export function ProductNav() {
+export function ProductNav({ activeKey }: { activeKey: ProductKey }) {
   return (
     <box
       title="Upstash"
+      titleColor={theme.title}
+      titleAlignment="center"
       style={{
         border: true,
         borderStyle: "rounded",
@@ -21,18 +16,22 @@ export function ProductNav() {
         paddingLeft: 2,
         paddingRight: 2,
         flexDirection: "row",
-        gap: 3,
+        justifyContent: "center",
+        gap: 4,
       }}
     >
-      {PRODUCTS.map((p) => (
-        <text
-          key={p.name}
-          fg={p.active ? theme.accent : theme.textFaint}
-          attributes={p.active ? TextAttributes.BOLD : 0}
-        >
-          {p.badge ? `${p.name} ${p.badge}` : p.name}
-        </text>
-      ))}
+      {products.map((p) => {
+        const active = p.key === activeKey
+        return (
+          <text
+            key={p.key}
+            fg={active ? p.color : theme.textFaint}
+            attributes={active ? TextAttributes.BOLD : 0}
+          >
+            {p.name}
+          </text>
+        )
+      })}
     </box>
   )
 }

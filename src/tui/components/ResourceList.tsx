@@ -12,6 +12,7 @@ export function ResourceList({
   return (
     <box
       title="Databases"
+      titleColor={theme.title}
       style={{
         border: true,
         borderStyle: "rounded",

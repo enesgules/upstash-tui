@@ -25,6 +25,7 @@ export function SummaryCard({
   return (
     <box
       title="Redis · Low-latency serverless key-value store"
+      titleColor={theme.title}
       style={{
         border: true,
         borderStyle: "rounded",

@@ -15,6 +15,7 @@ export function DetailsPanel({ db }: { db: RedisDatabase }) {
   return (
     <box
       title={db.name}
+      titleColor={theme.accent}
       style={{
         border: true,
         borderStyle: "rounded",

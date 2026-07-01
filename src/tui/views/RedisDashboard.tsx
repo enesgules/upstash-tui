@@ -32,7 +32,7 @@ export function RedisDashboard() {
         gap: layout.gap,
       }}
     >
-      <ProductNav />
+      <ProductNav activeKey="redis" />
       <SummaryCard
         commands={redisSummary.commands}
         storageBytes={redisSummary.storageBytes}

@@ -4,6 +4,7 @@ export function CommandBar() {
   return (
     <box
       title="Ask Upstash"
+      titleColor={theme.accent}
       style={{
         border: true,
         borderStyle: "rounded",
