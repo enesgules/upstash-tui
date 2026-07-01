@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useKeyboard } from "@opentui/react"
-import { theme } from "../../theme.ts"
+import { theme, layout } from "../../theme.ts"
 import { databases, redisSummary } from "../../mock.ts"
 import { ProductNav } from "../components/ProductNav.tsx"
 import { SummaryCard } from "../components/SummaryCard.tsx"
@@ -28,8 +28,8 @@ export function RedisDashboard() {
         width: "100%",
         height: "100%",
         backgroundColor: theme.bg,
-        padding: 1,
-        gap: 1,
+        padding: layout.pad,
+        gap: layout.gap,
       }}
     >
       <ProductNav />
@@ -38,7 +38,7 @@ export function RedisDashboard() {
         storageBytes={redisSummary.storageBytes}
         cost={redisSummary.cost}
       />
-      <box style={{ flexDirection: "row", gap: 1, flexGrow: 1 }}>
+      <box style={{ flexDirection: "row", gap: layout.gap, flexGrow: 1 }}>
         <ResourceList databases={databases} selectedId={selected.id} />
         <DetailsPanel db={selected} />
       </box>
