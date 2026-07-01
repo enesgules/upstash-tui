@@ -147,42 +147,17 @@ The planner is told never to generate one — and if the model tries anyway, the
 Delete happens only through a deliberate human action, never from a prompt.
 :::
 
-# The Flow, End to End
----
-layout: center
-subtitle: Preview and confirm before anything happens
----
-
-```mermaid
-flowchart LR
-NL[Natural language] --> Planner[LLM planner]
-Planner --> Plan[JSON plan]
-Plan --> Validate[Allowlist validate]
-Validate --> Preview[Preview + risk]
-Preview --> Confirm[You confirm]
-Confirm --> Execute[Execute]
-```
-
 # How It's Built
 ---
-layout: two-cols
+layout: default
 subtitle: Small, testable modules
 ---
 
-Stack
-
-- Bun runtime
-- OpenTUI + React 19
-- Developer API (Basic auth)
-- OpenRouter · Opus 4.8 planner
-
-::right::
-
-Modules
+Bun · OpenTUI + React 19 · Developer API (Basic auth) · OpenRouter Opus 4.8
 
 | dir | role |
 | --- | --- |
-| api/ | Redis · QStash · Workflow · Vector |
+| api/ | Redis · QStash · Workflow · Vector clients |
 | ai/ | natural language → plan |
 | operations/ | validate · build · execute |
 | tui/ | views + components |
