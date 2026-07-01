@@ -115,9 +115,9 @@ export const mockDlq: QStashDlqMessage[] = [
 ]
 
 export const mockIndexes: VectorIndex[] = [
-  { id: "idx_docs", name: "context7-docs", region: "us-east-1", dimensions: 1536, similarityFunction: "COSINE", type: "DENSE", endpoint: "context7-docs-12345.upstash.io" },
-  { id: "idx_search", name: "context7-search", region: "eu-west-1", dimensions: 1024, similarityFunction: "DOT_PRODUCT", type: "DENSE", endpoint: "context7-search-67890.upstash.io" },
-  { id: "idx_hybrid", name: "context7-hybrid", region: "us-east-1", dimensions: null, similarityFunction: null, type: "SPARSE", endpoint: "context7-hybrid-24680.upstash.io" },
+  { id: "idx_docs", name: "context7-docs", region: "us-east-1", dimensions: 1536, similarityFunction: "COSINE", type: "payg", endpoint: "context7-docs-12345.upstash.io", indexType: "DENSE", embeddingModel: "MXBAI_EMBED_LARGE_V1", maxVectorCount: 10_000_000, maxDailyQueries: 1_000_000, maxDailyUpdates: 1_000_000, createdAt: 1717200000000 },
+  { id: "idx_search", name: "context7-search", region: "eu-west-1", dimensions: 1024, similarityFunction: "DOT_PRODUCT", type: "fixed", endpoint: "context7-search-67890.upstash.io", indexType: "DENSE", embeddingModel: null, maxVectorCount: 50_000_000, maxDailyQueries: 5_000_000, maxDailyUpdates: 2_000_000, createdAt: 1716000000000 },
+  { id: "idx_hybrid", name: "context7-hybrid", region: "us-east-1", dimensions: null, similarityFunction: null, type: "payg", endpoint: "context7-hybrid-24680.upstash.io", indexType: "SPARSE", embeddingModel: "BGE_M3", maxVectorCount: null, maxDailyQueries: null, maxDailyUpdates: null, createdAt: 1717804800000 },
 ]
 
 export const mockWorkflowRuns: WorkflowRun[] = [

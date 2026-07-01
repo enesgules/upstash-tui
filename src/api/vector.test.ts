@@ -39,6 +39,12 @@ describe("mapIndex", () => {
       similarityFunction: "COSINE",
       type: "payg",
       endpoint: "my-index-1234-us-east-1-vector.upstash.io",
+      indexType: "DENSE",
+      embeddingModel: "BGE_SMALL_EN_V1_5",
+      maxVectorCount: 1000000,
+      maxDailyQueries: 100000,
+      maxDailyUpdates: 100000,
+      createdAt: 1700000000,
     })
   })
 
@@ -65,6 +71,12 @@ describe("mapIndex", () => {
       similarityFunction: null,
       type: "free",
       endpoint: null,
+      indexType: "SPARSE",
+      embeddingModel: null,
+      maxVectorCount: null,
+      maxDailyQueries: null,
+      maxDailyUpdates: null,
+      createdAt: 1700000001,
     })
   })
 

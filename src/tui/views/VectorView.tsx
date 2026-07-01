@@ -229,12 +229,29 @@ export function VectorView({
             }}
           >
             {selected ? (
-              <box style={{ flexDirection: "column" }}>
-                <Row label="Region" value={selected.region} />
-                <Row label="Type" value={selected.type ?? "—"} />
-                <Row label="Dimensions" value={selected.dimensions === null ? "—" : String(selected.dimensions)} />
-                <Row label="Similarity" value={selected.similarityFunction ?? "—"} />
-                <Row label="Endpoint" value={selected.endpoint ?? "—"} />
+              <box style={{ flexDirection: "column", gap: 1 }}>
+                <box style={{ flexDirection: "column" }}>
+                  <SectionLabel text="CONFIGURATION" />
+                  <Row label="Dimensions" value={selected.dimensions === null ? "—" : String(selected.dimensions)} />
+                  <Row label="Similarity" value={selected.similarityFunction ?? "—"} />
+                  <Row label="Index type" value={selected.indexType ?? "—"} />
+                  <Row label="Embedding" value={selected.embeddingModel ?? "custom / none"} />
+                </box>
+
+                <box style={{ flexDirection: "column" }}>
+                  <SectionLabel text="LIMITS" />
+                  <Row label="Max vectors" value={num(selected.maxVectorCount, formatCompactNumber)} />
+                  <Row label="Daily queries" value={num(selected.maxDailyQueries, formatCompactNumber)} />
+                  <Row label="Daily updates" value={num(selected.maxDailyUpdates, formatCompactNumber)} />
+                </box>
+
+                <box style={{ flexDirection: "column" }}>
+                  <SectionLabel text="CONNECTION" />
+                  <Row label="Region" value={selected.region} />
+                  <Row label="Plan" value={selected.type ?? "—"} />
+                  <Row label="Endpoint" value={selected.endpoint ?? "—"} />
+                  <Row label="Created" value={fmtDate(selected.createdAt)} />
+                </box>
               </box>
             ) : (
               <text fg={theme.textDim}>No index selected.</text>
@@ -254,8 +271,22 @@ export function VectorView({
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <box style={{ flexDirection: "row" }}>
-      <text fg={theme.textDim}>{label.padEnd(12)}</text>
+      <text fg={theme.textDim}>{label.padEnd(15)}</text>
       <text fg={theme.textBright}>{value}</text>
     </box>
   )
+}
+
+function SectionLabel({ text }: { text: string }) {
+  return (
+    <text fg={theme.textFaint} attributes={TextAttributes.BOLD}>
+      {text}
+    </text>
+  )
+}
+
+// Vector's creation_time is epoch milliseconds; render just the date.
+function fmtDate(ms: number | null): string {
+  if (ms == null) return "—"
+  return new Date(ms).toISOString().slice(0, 10)
 }

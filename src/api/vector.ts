@@ -40,6 +40,12 @@ export type VectorIndex = {
   similarityFunction: string | null
   type: string | null
   endpoint: string | null
+  indexType: string | null
+  embeddingModel: string | null
+  maxVectorCount: number | null
+  maxDailyQueries: number | null
+  maxDailyUpdates: number | null
+  createdAt: number | null
 }
 
 function auth(creds: UpstashCreds): string {
@@ -55,6 +61,12 @@ export function mapIndex(raw: RawVectorIndex): VectorIndex {
     similarityFunction: raw.similarity_function ?? null,
     type: raw.type ?? null,
     endpoint: raw.endpoint ?? null,
+    indexType: raw.index_type ?? null,
+    embeddingModel: raw.embedding_model ?? null,
+    maxVectorCount: raw.max_vector_count ?? null,
+    maxDailyQueries: raw.max_daily_queries ?? null,
+    maxDailyUpdates: raw.max_daily_updates ?? null,
+    createdAt: raw.creation_time ?? null,
   }
 }
 
