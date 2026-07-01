@@ -2,10 +2,10 @@ import { useEffect, useState } from "react"
 import { useKeyboard } from "@opentui/react"
 import { TextAttributes } from "@opentui/core"
 import { theme, layout, productColors } from "../../theme.ts"
-import { formatBytes, formatCompactNumber, formatCost } from "../../format.ts"
+import { formatBytes, formatCompactNumber, formatCost, truncate } from "../../format.ts"
 import type { UpstashCreds } from "../../config.ts"
-import type { VectorIndex } from "../../api/vector.ts"
-import { listIndexes } from "../../api/vector.ts"
+import type { VectorIndex, VectorMetrics } from "../../api/vector.ts"
+import { listIndexes, getVectorMetrics } from "../../api/vector.ts"
 import { mockIndexes, mockVectorMetrics } from "../../mock.ts"
 import { ProductNav } from "../components/ProductNav.tsx"
 import { MetricCards, type MetricItem } from "../components/MetricCards.tsx"
@@ -27,10 +27,18 @@ export function VectorView({
   const [error, setError] = useState<string | null>(null)
   const [selectedIndex, setSelectedIndex] = useState(0)
 
+  const [liveMetrics, setLiveMetrics] = useState<VectorMetrics | null>(null)
+
+  const [search, setSearch] = useState("")
+  const [searchFocused, setSearchFocused] = useState(false)
+  // Bumping this remounts the search input, which is how we clear its text.
+  const [searchResetKey, setSearchResetKey] = useState(0)
+
   async function load() {
     if (!creds) return
     setLoading(true)
     setError(null)
+    void getVectorMetrics(creds).then(setLiveMetrics).catch(() => {})
     try {
       const result = await listIndexes(creds)
       setIndexes(result)
@@ -47,18 +55,56 @@ export function VectorView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  const query = search.trim().toLowerCase()
+  const visibleIndexes = query
+    ? indexes.filter((idx) => idx.name.toLowerCase().includes(query))
+    : indexes
+
+  function onSearchInput(value: string) {
+    setSearch(value)
+    setSelectedIndex(0)
+  }
+
+  function onSearchSubmit() {
+    // Keep the filter, hand keyboard focus back to the list for navigation.
+    setSearchFocused(false)
+  }
+
+  function clearSearch() {
+    setSearch("")
+    setSelectedIndex(0)
+    setSearchFocused(false)
+    setSearchResetKey((k) => k + 1)
+  }
+
   useKeyboard((key) => {
-    if (key.name === "escape") onHome()
-    else if (key.name === "tab") onCycle(key.shift ? -1 : 1)
+    if (searchFocused) {
+      if (key.name === "escape") clearSearch()
+      return // typing flows to the search input
+    }
+    if (key.name === "escape") {
+      if (query) clearSearch()
+      else onHome()
+    } else if (key.name === "tab") onCycle(key.shift ? -1 : 1)
+    else if (key.name === "s") setSearchFocused(true)
     else if (key.name === "r") void load()
     else if (key.name === "up" || key.name === "k") setSelectedIndex((i) => Math.max(0, i - 1))
-    else if (key.name === "down" || key.name === "j") setSelectedIndex((i) => Math.min(indexes.length - 1, i + 1))
+    else if (key.name === "down" || key.name === "j") setSelectedIndex((i) => Math.min(visibleIndexes.length - 1, i + 1))
   })
 
-  const selected = indexes[selectedIndex]
+  const selected = visibleIndexes[selectedIndex]
   const v = mockVectorMetrics
+  const lm = liveMetrics
+  const num = (n: number | null | undefined, fmt: (x: number) => string) => (n == null ? "—" : fmt(n))
   const metrics: MetricItem[] = live
-    ? ["Count", "Requests", "Bandwidth", "Reranks", "Storage", "Cost"].map((label) => ({ label, value: "—" }))
+    ? [
+        { label: "Count", value: num(lm?.count, formatCompactNumber), color: ACCENT },
+        { label: "Requests", value: num(lm?.requests, formatCompactNumber), color: ACCENT },
+        { label: "Bandwidth", value: num(lm?.bandwidthBytes, formatBytes), color: ACCENT },
+        { label: "Reranks", value: num(lm?.reranks, String), color: ACCENT },
+        { label: "Storage", value: num(lm?.storageBytes, formatBytes), color: ACCENT },
+        { label: "Cost", value: num(lm?.cost, formatCost), color: theme.warn },
+      ]
     : [
         { label: "Count", value: formatCompactNumber(v.count), color: ACCENT },
         { label: "Requests", value: formatCompactNumber(v.requests), color: ACCENT },
@@ -107,28 +153,62 @@ export function VectorView({
               width: layout.listWidth,
               flexShrink: 0,
               flexDirection: "column",
-              padding: 1,
+              paddingLeft: 1,
+              paddingRight: 1,
+              paddingTop: 1,
             }}
           >
-            {indexes.length === 0 ? (
-              <text fg={theme.textFaint}>No indexes yet</text>
+            <box
+              style={{
+                border: true,
+                borderStyle: "single",
+                borderColor: searchFocused ? ACCENT : theme.borderSubtle,
+                height: 3,
+                marginBottom: 1,
+              }}
+            >
+              <input
+                key={searchResetKey}
+                placeholder="Search…  (s)"
+                focused={searchFocused}
+                textColor={theme.textBright}
+                backgroundColor={theme.bgPanel}
+                onInput={onSearchInput}
+                onSubmit={onSearchSubmit}
+              />
+            </box>
+
+            {query ? (
+              <text fg={theme.textFaint}>
+                {visibleIndexes.length} {visibleIndexes.length === 1 ? "match" : "matches"}
+              </text>
+            ) : null}
+
+            {visibleIndexes.length === 0 ? (
+              <text fg={theme.textFaint}>{query ? "No matches" : "No indexes yet"}</text>
             ) : (
-              indexes.map((idx, i) => {
+              visibleIndexes.map((idx, i) => {
                 const sel = i === selectedIndex
+                const rowBg = sel ? theme.accentDim : theme.bgPanel
+                // Single line per index: region/type/etc. live in the details
+                // panel, so repeating them per row (identical across indexes) is
+                // just noise. The selection bar glyph is always rendered and only
+                // recolored so the name column never shifts.
                 return (
                   <box
                     key={idx.id}
                     style={{
-                      flexDirection: "column",
-                      backgroundColor: sel ? theme.accentDim : theme.bgPanel,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      backgroundColor: rowBg,
                       paddingLeft: 1,
                       paddingRight: 1,
                     }}
                   >
+                    <text fg={sel ? ACCENT : rowBg}>{"▎"}</text>
                     <text fg={sel ? theme.textBright : theme.textDim} attributes={sel ? TextAttributes.BOLD : 0}>
-                      {idx.name}
+                      {" " + truncate(idx.name, 30)}
                     </text>
-                    <text fg={theme.textFaint}>{`${idx.region}  ·  ${idx.type ?? "—"}`}</text>
                   </box>
                 )
               })
@@ -164,7 +244,8 @@ export function VectorView({
       )}
 
       <text fg={theme.textFaint}>
-        ↑↓ select · tab switch product · r refresh · esc home{live ? "" : "  ·  demo data — set UPSTASH creds for live"}
+        ↑↓ select · s search · tab switch product · r refresh · esc {query ? "clear" : "home"}
+        {live ? "" : "  ·  demo data — set UPSTASH creds for live"}
       </text>
     </box>
   )

@@ -14,6 +14,16 @@ export function formatCompactNumber(n: number): string {
   return String(n)
 }
 
+// Clip a string to a column budget, adding an ellipsis. Keeps list rows on a
+// single line so long names (e.g. "backup-02-15-context7-prod") can't wrap and
+// distort the layout.
+export function truncate(s: string, max: number): string {
+  if (max <= 0) return ""
+  if (s.length <= max) return s
+  if (max === 1) return "…"
+  return s.slice(0, max - 1) + "…"
+}
+
 export function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
   const units = ["KB", "MB", "GB", "TB"]

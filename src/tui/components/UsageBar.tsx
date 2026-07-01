@@ -25,11 +25,11 @@ export function UsageBar({
     <box style={{ flexDirection: "row", gap: 1 }}>
       <text fg={theme.textDim}>{label.padEnd(9)}</text>
       <text fg={theme.textBright}>{format(used, limit).padEnd(18)}</text>
-      {ratio === null ? (
-        <text fg={theme.textFaint}>{"░".repeat(width)}</text>
-      ) : (
+      {/* Only draw the bar when we actually know usage. An empty ░ track for
+          unknown usage reads as "0% used", which is misleading. */}
+      {ratio !== null ? (
         <text fg={LEVEL_COLOR[usageLevel(ratio)]}>{usageBar(ratio, width)}</text>
-      )}
+      ) : null}
     </box>
   )
 }

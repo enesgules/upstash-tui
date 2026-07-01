@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { theme } from "../../theme.ts"
+import { ThinkingIndicator } from "./ThinkingIndicator.tsx"
 
 // Rotating example prompts — grounded in the operations the planner supports
 // (create, budget, eviction, rename, env), so each reads as a real suggestion.
@@ -40,11 +41,9 @@ export function CommandBar({
 
   const hint = disabled
     ? "Set OPENROUTER_API_KEY in .env to enable the AI command bar"
-    : busy
-      ? "Thinking…"
-      : focused
-        ? "Describe an action · Enter to plan · Esc to cancel"
-        : "Press / to ask Upstash AI"
+    : focused
+      ? "Ask a question or describe an action · Enter to send · Esc to cancel"
+      : "Press / to ask Upstash AI"
 
   return (
     <box
@@ -60,19 +59,26 @@ export function CommandBar({
         flexDirection: "column",
       }}
     >
-      <box style={{ height: 1 }}>
-        <input
-          placeholder={`e.g. ${SUGGESTIONS[suggestionIndex]}`}
-          focused={focused && !disabled && !busy}
-          textColor={theme.textBright}
-          backgroundColor={theme.bgPanel}
-          onInput={(value: string) => {
-            valueRef.current = value
-          }}
-          onSubmit={() => onSubmit(valueRef.current)}
-        />
+      <box style={{ height: 1, flexDirection: "row", gap: 1 }}>
+        <text fg={focused ? theme.accent : theme.textFaint}>{"›"}</text>
+        <box style={{ flexGrow: 1 }}>
+          <input
+            placeholder={`e.g. ${SUGGESTIONS[suggestionIndex]}`}
+            focused={focused && !disabled && !busy}
+            textColor={theme.textBright}
+            backgroundColor={theme.bgPanel}
+            onInput={(value: string) => {
+              valueRef.current = value
+            }}
+            onSubmit={() => onSubmit(valueRef.current)}
+          />
+        </box>
       </box>
-      <text fg={error ? theme.danger : theme.textFaint}>{error ? error : hint}</text>
+      {busy ? (
+        <ThinkingIndicator />
+      ) : (
+        <text fg={error ? theme.danger : theme.textFaint}>{error ? error : hint}</text>
+      )}
     </box>
   )
 }

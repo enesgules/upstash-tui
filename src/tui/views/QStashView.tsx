@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { useKeyboard } from "@opentui/react"
 import { TextAttributes } from "@opentui/core"
 import { theme, layout, productColors } from "../../theme.ts"
-import { formatBytes, formatCompactNumber, formatCost } from "../../format.ts"
+import { formatBytes, formatCompactNumber, formatCost, truncate } from "../../format.ts"
 import type { QStashCreds } from "../../config.ts"
 import type { OperationPlan } from "../../types.ts"
 import type { QStashSchedule, QStashUrlGroup, QStashDlqMessage } from "../../api/qstash.ts"
@@ -53,6 +53,11 @@ export function QStashView({
   const [error, setError] = useState<string | null>(null)
   const [selected, setSelected] = useState(0)
 
+  const [search, setSearch] = useState("")
+  const [searchFocused, setSearchFocused] = useState(false)
+  // Bumping this remounts the search input, which is how we clear its text.
+  const [searchResetKey, setSearchResetKey] = useState(0)
+
   const [publishing, setPublishing] = useState(false)
   const [preview, setPreview] = useState<{ plan: OperationPlan; confirm: ConfirmSpec } | null>(null)
   const [previewBusy, setPreviewBusy] = useState(false)
@@ -81,7 +86,30 @@ export function QStashView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const current = schedules[selected]
+  const query = search.trim().toLowerCase()
+  const visibleSchedules = query
+    ? schedules.filter(
+        (s) => scheduleName(s).toLowerCase().includes(query) || s.destination.toLowerCase().includes(query),
+      )
+    : schedules
+  const current = visibleSchedules[selected]
+
+  function onSearchInput(value: string) {
+    setSearch(value)
+    setSelected(0)
+  }
+
+  function onSearchSubmit() {
+    // Keep the filter, hand keyboard focus back to the list for navigation.
+    setSearchFocused(false)
+  }
+
+  function clearSearch() {
+    setSearch("")
+    setSelected(0)
+    setSearchFocused(false)
+    setSearchResetKey((k) => k + 1)
+  }
 
   function openPreview(plan: OperationPlan) {
     setPreviewResult(null)
@@ -114,12 +142,19 @@ export function QStashView({
 
   useKeyboard((key) => {
     if (preview || publishing) return
-    if (key.name === "escape") onHome()
-    else if (key.name === "tab") onCycle(key.shift ? -1 : 1)
+    if (searchFocused) {
+      if (key.name === "escape") clearSearch()
+      return // typing flows to the search input
+    }
+    if (key.name === "escape") {
+      if (query) clearSearch()
+      else onHome()
+    } else if (key.name === "tab") onCycle(key.shift ? -1 : 1)
+    else if (key.name === "s") setSearchFocused(true)
     else if (key.name === "r") void load()
     else if (key.name === "p") setPublishing(true)
     else if (key.name === "up" || key.name === "k") setSelected((i) => Math.max(0, i - 1))
-    else if (key.name === "down" || key.name === "j") setSelected((i) => Math.min(schedules.length - 1, i + 1))
+    else if (key.name === "down" || key.name === "j") setSelected((i) => Math.min(visibleSchedules.length - 1, i + 1))
     else if (current && key.name === "space") {
       const name = scheduleName(current)
       openPreview(current.paused ? resumeSchedulePlan(current.id, name) : pauseSchedulePlan(current.id, name))
@@ -180,13 +215,35 @@ export function QStashView({
               flexGrow: 1,
               flexBasis: 1,
               flexDirection: "column",
-              padding: 1,
+              paddingLeft: 1,
+              paddingRight: 1,
+              paddingTop: 1,
             }}
           >
-            {schedules.length === 0 ? (
-              <text fg={theme.textFaint}>None yet</text>
+            <box
+              style={{
+                border: true,
+                borderStyle: "single",
+                borderColor: searchFocused ? ACCENT : theme.borderSubtle,
+                height: 3,
+                marginBottom: 1,
+              }}
+            >
+              <input
+                key={searchResetKey}
+                placeholder="Search…  (s)"
+                focused={searchFocused}
+                textColor={theme.textBright}
+                backgroundColor={theme.bgPanel}
+                onInput={onSearchInput}
+                onSubmit={onSearchSubmit}
+              />
+            </box>
+
+            {visibleSchedules.length === 0 ? (
+              <text fg={theme.textFaint}>{query ? "No matches" : "None yet"}</text>
             ) : (
-              schedules.map((s, i) => {
+              visibleSchedules.map((s, i) => {
                 const sel = i === selected
                 return (
                   <box
@@ -201,7 +258,7 @@ export function QStashView({
                       fg={sel ? theme.textBright : theme.textDim}
                       attributes={sel ? TextAttributes.BOLD : 0}
                     >
-                      {`${s.paused ? "⏸" : "▶"} ${s.cron}  ${scheduleName(s)}`}
+                      {truncate(`${s.paused ? "⏸" : "▶"} ${s.cron}  ${scheduleName(s)}`, 30)}
                     </text>
                   </box>
                 )
@@ -221,7 +278,8 @@ export function QStashView({
       )}
 
       <text fg={theme.textFaint}>
-        ↑↓ select · space pause/resume · d delete · p publish · tab switch product · r refresh · esc home
+        ↑↓ select · s search · space pause/resume · d delete · p publish · tab switch product · r refresh · esc{" "}
+        {query ? "clear" : "home"}
         {live ? "" : "  ·  demo — set QSTASH_TOKEN for live"}
       </text>
 
@@ -271,7 +329,7 @@ function ListCard({ title, items }: { title: string; items: string[] }) {
       ) : (
         items.map((line, i) => (
           <text key={i} fg={theme.textDim}>
-            {line}
+            {truncate(line, 30)}
           </text>
         ))
       )}

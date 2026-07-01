@@ -2,7 +2,6 @@ import { useEffect, useState } from "react"
 import { useKeyboard } from "@opentui/react"
 import { theme, layout } from "../../theme.ts"
 import { databases as mockDatabases } from "../../mock.ts"
-import { withSyntheticStats } from "../../synthStats.ts"
 import type { RedisDatabase, OperationPlan } from "../../types.ts"
 import type { UpstashCreds, OpenRouterCreds } from "../../config.ts"
 import { ProductNav } from "../components/ProductNav.tsx"
@@ -12,6 +11,7 @@ import { DetailsPanel } from "../components/DetailsPanel.tsx"
 import { CommandBar } from "../components/CommandBar.tsx"
 import { OperationPreview, type ConfirmSpec } from "../components/OperationPreview.tsx"
 import { listDatabases } from "../../api/upstash.ts"
+import { getRedisUsage } from "../../api/redisStats.ts"
 import { chatJSON } from "../../api/openrouter.ts"
 import { planFromCommand } from "../../ai/planner.ts"
 import { executePlan } from "../../operations/execute.ts"
@@ -46,9 +46,7 @@ export function RedisDashboard({
   onHome: () => void
   onCycle: (delta: number) => void
 }) {
-  const [databases, setDatabases] = useState<RedisDatabase[]>(
-    mode === "demo" ? mockDatabases.map(withSyntheticStats) : [],
-  )
+  const [databases, setDatabases] = useState<RedisDatabase[]>(mode === "demo" ? mockDatabases : [])
   const [loading, setLoading] = useState(mode === "live")
   const [loadError, setLoadError] = useState<string | null>(null)
   const [selectedIndex, setSelectedIndex] = useState(0)
@@ -61,6 +59,7 @@ export function RedisDashboard({
   const [commandFocused, setCommandFocused] = useState(false)
   const [commandBusy, setCommandBusy] = useState(false)
   const [commandError, setCommandError] = useState<string | null>(null)
+  const [answer, setAnswer] = useState<string | null>(null)
 
   const [search, setSearch] = useState("")
   const [searchFocused, setSearchFocused] = useState(false)
@@ -73,8 +72,23 @@ export function RedisDashboard({
     setLoadError(null)
     try {
       const dbs = await listDatabases(creds)
-      setDatabases(dbs.map(withSyntheticStats))
+      // Show the list immediately, then refine with real per-database usage from
+      // the stats endpoint as it arrives.
+      setDatabases(dbs)
       setSelectedIndex((i) => Math.min(i, Math.max(0, dbs.length - 1)))
+      const usages = await Promise.all(dbs.map((d) => getRedisUsage(creds, d.id).catch(() => null)))
+      const merged = dbs.map((d, i) => {
+        const u = usages[i]
+        return u
+          ? {
+              ...d,
+              commands: { ...d.commands, used: u.commands },
+              storage: { ...d.storage, usedBytes: u.storageBytes },
+              cost: { ...d.cost, current: u.cost },
+            }
+          : d
+      })
+      setDatabases(merged)
     } catch (e) {
       setLoadError(e instanceof Error ? e.message : "Failed to load databases")
     } finally {
@@ -115,6 +129,7 @@ export function RedisDashboard({
   }
 
   function openPreview(plan: OperationPlan) {
+    setAnswer(null)
     setPreviewResult(null)
     setPreviewError(null)
     setPreviewBusy(false)
@@ -148,6 +163,7 @@ export function RedisDashboard({
     if (!command || !openrouter) return
     setCommandBusy(true)
     setCommandError(null)
+    setAnswer(null)
     try {
       const chat = (system: string, user: string) => chatJSON(openrouter, system, user)
       const context = {
@@ -155,10 +171,26 @@ export function RedisDashboard({
           ? { id: selected.id, name: selected.name, region: selected.region }
           : null,
         regions: REGIONS,
+        databases: databases.map((d) => ({
+          id: d.id,
+          name: d.name,
+          region: d.region,
+          plan: d.plan,
+          eviction: d.eviction,
+          prodPack: d.prodPack,
+          commandsUsed: d.commands.used,
+          storageUsedBytes: d.storage.usedBytes,
+          costCurrent: d.cost.current,
+          costBudget: d.cost.budget,
+        })),
       }
-      const plan = await planFromCommand(command, context, chat)
+      const result = await planFromCommand(command, context, chat)
       setCommandFocused(false)
-      openPreview(plan)
+      if (result.kind === "plan") {
+        openPreview(result.plan)
+      } else {
+        setAnswer(result.text)
+      }
     } catch (e) {
       setCommandError(e instanceof Error ? e.message : "Couldn't build a plan")
     } finally {
@@ -179,7 +211,8 @@ export function RedisDashboard({
     }
 
     if (key.name === "escape") {
-      if (query) clearSearch()
+      if (answer) setAnswer(null)
+      else if (query) clearSearch()
       else onHome()
     } else if (key.name === "tab") {
       onCycle(key.shift ? -1 : 1)
@@ -201,14 +234,12 @@ export function RedisDashboard({
     }
   })
 
-  // Usage is synthesized (see withSyntheticStats) whenever real stats are
-  // absent, so the summary now aggregates in both modes rather than showing "—".
+  // Aggregate whatever real usage has loaded; unknown values count as 0.
   const summary = {
     commands: databases.reduce((s, d) => s + (d.commands.used ?? 0), 0),
     storageBytes: databases.reduce((s, d) => s + (d.storage.usedBytes ?? 0), 0),
     cost: databases.reduce((s, d) => s + (d.cost.current ?? 0), 0),
   }
-  const summarySynthetic = databases.some((d) => d.synthetic)
 
   return (
     <box
@@ -222,12 +253,7 @@ export function RedisDashboard({
       }}
     >
       <ProductNav activeKey="redis" />
-      <SummaryCard
-        commands={summary.commands}
-        storageBytes={summary.storageBytes}
-        cost={summary.cost}
-        synthetic={summarySynthetic}
-      />
+      <SummaryCard commands={summary.commands} storageBytes={summary.storageBytes} cost={summary.cost} />
 
       <box style={{ flexDirection: "row", gap: layout.gap, flexGrow: 1 }}>
         <ResourceList
@@ -245,6 +271,8 @@ export function RedisDashboard({
       <text fg={theme.textFaint}>
         ↑↓ select · s search · tab switch product · e eviction · d delete · r refresh · esc {query ? "clear" : "home"}
       </text>
+
+      {answer ? <AnswerCard text={answer} /> : null}
 
       <CommandBar
         focused={commandFocused}
@@ -302,6 +330,27 @@ function RightPanel({
     )
   }
   return <DetailsPanel db={selected} />
+}
+
+function AnswerCard({ text }: { text: string }) {
+  return (
+    <box
+      title="Upstash AI"
+      titleColor={theme.accent}
+      style={{
+        border: true,
+        borderStyle: "rounded",
+        borderColor: theme.accent,
+        backgroundColor: theme.bgPanel,
+        paddingLeft: 1,
+        paddingRight: 1,
+        flexDirection: "column",
+      }}
+    >
+      <text fg={theme.textBright}>{text}</text>
+      <text fg={theme.textFaint}>Esc to dismiss</text>
+    </box>
+  )
 }
 
 function Panel({ children }: { children: React.ReactNode }) {

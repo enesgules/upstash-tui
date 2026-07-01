@@ -1,10 +1,33 @@
 import type { OperationPlan } from "../types.ts"
 import { validatePlan } from "../operations/validate.ts"
 
+// A compact, read-only snapshot of a database so the planner can *answer*
+// questions ("which db costs the most?") from data already loaded client-side,
+// with no extra API calls.
+export type PlannerDatabase = {
+  id: string
+  name: string
+  region: string
+  plan: string
+  eviction: boolean
+  prodPack: boolean
+  commandsUsed: number | null
+  storageUsedBytes: number | null
+  costCurrent: number | null
+  costBudget: number | null
+}
+
 export type PlannerContext = {
   selectedDatabase?: { id: string; name: string; region: string } | null
   regions?: string[]
+  databases?: PlannerDatabase[]
 }
+
+// The command bar has two lanes: the planner either answers a read-only
+// question, or produces a mutation plan to preview and confirm.
+export type PlannerResult =
+  | { kind: "answer"; text: string }
+  | { kind: "plan"; plan: OperationPlan }
 
 export type ChatFn = (system: string, user: string) => Promise<string>
 
@@ -20,16 +43,21 @@ function extractJson(raw: string): string {
   return s
 }
 
-const SYSTEM_PROMPT_HEADER = `You are the planning engine behind an Upstash Redis TUI command bar. Given a
-natural-language request from the user, you produce a single JSON object describing an
-"operation plan" to be previewed and confirmed by the user before anything runs. You never
-execute anything yourself, and you never see or need credentials.
+const SYSTEM_PROMPT_HEADER = `You are the assistant behind an Upstash Redis TUI command bar. You either ANSWER a
+read-only question, or produce a mutation PLAN that the user previews and confirms before
+anything runs. You never execute anything yourself, and you never see or need credentials.
 
 Reply with ONLY a JSON object - no prose, no markdown fences. The object must match exactly
 one of these two shapes:
 
-1. A valid operation plan:
+1. An answer (use this for questions, summaries, "what can you do?", and anything that does
+   NOT change infrastructure). Answer from the database data provided in context - do not
+   make up numbers. Keep it to 1-3 short sentences.
+{ "kind": "answer", "text": "..." }
+
+2. An operation plan (use this ONLY when the user asks to change something):
 {
+  "kind": "plan",
   "title": string,
   "summary": string,
   "risk": "safe" | "paid" | "destructive",
@@ -37,8 +65,8 @@ one of these two shapes:
   "operations": [ ...one or more operation objects, see below... ]
 }
 
-2. An error, if the request cannot be turned into a supported plan:
-{ "error": "short human-readable reason" }
+Default to the answer shape whenever you are unsure. Prefer answering over refusing: if a
+request isn't a supported mutation, answer with what you CAN do instead.
 
 Allowed operation object shapes (the "type" field is required and must be exactly one of these):
 - { "type": "redis.create", "name": string, "region"?: string, "plan"?: string }
@@ -53,10 +81,9 @@ Risk rules (set "risk" and "requiresConfirmation" accordingly):
 - "redis.rename", "redis.toggleEviction", "redis.updateBudget" -> risk
   "safe", requiresConfirmation true.
 - There is NO delete/destroy operation type available to you. Deleting a database is NOT
-  supported by this planner - if the user asks to delete/destroy a database, reply with the
-  error shape instead of inventing an operation.
-- Never invent operation types or fields beyond what is listed above. If the request doesn't
-  map cleanly onto the allowed operations, reply with the error shape.`
+  supported here - if the user asks to delete/destroy a database, use the answer shape to say
+  they should select it and press d instead.
+- Never invent operation types or fields beyond what is listed above.`
 
 function buildSystemPrompt(context: PlannerContext): string {
   const lines = [SYSTEM_PROMPT_HEADER, "", "Current context:"]
@@ -72,11 +99,20 @@ function buildSystemPrompt(context: PlannerContext): string {
     lines.push(`- Available regions: ${context.regions.join(", ")}`)
   }
 
+  if (context.databases && context.databases.length > 0) {
+    lines.push("", "Databases (use this data to answer questions - never invent values):")
+    for (const db of context.databases) {
+      lines.push(`- ${JSON.stringify(db)}`)
+    }
+  } else {
+    lines.push("- No databases are loaded.")
+  }
+
   lines.push(
     "",
     "When the user refers to \"this database\", \"it\", or similar without naming one, use the" +
       " selected database's id. If there is no selected database and the request needs one," +
-      " reply with the error shape explaining that a database must be selected first.",
+      " answer explaining that a database must be selected first.",
   )
 
   return lines.join("\n")
@@ -86,7 +122,7 @@ export async function planFromCommand(
   command: string,
   context: PlannerContext,
   chat: ChatFn,
-): Promise<OperationPlan> {
+): Promise<PlannerResult> {
   const system = buildSystemPrompt(context)
 
   const raw = await chat(system, command)
@@ -98,13 +134,19 @@ export async function planFromCommand(
     throw new Error(`Couldn't turn that into a valid plan: response wasn't valid JSON (${(error as Error).message})`)
   }
 
-  if (
-    typeof parsed === "object" &&
-    parsed !== null &&
-    !Array.isArray(parsed) &&
-    typeof (parsed as { error?: unknown }).error === "string"
-  ) {
-    throw new Error((parsed as { error: string }).error)
+  const obj =
+    typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)
+      ? (parsed as Record<string, unknown>)
+      : {}
+
+  // Answer lane: read-only replies and soft refusals.
+  if (obj.kind === "answer" && typeof obj.text === "string") {
+    return { kind: "answer", text: obj.text }
+  }
+
+  // Legacy/hard error shape still surfaces as a thrown error (red).
+  if (typeof obj.error === "string") {
+    throw new Error(obj.error)
   }
 
   let plan: OperationPlan
@@ -121,5 +163,5 @@ export async function planFromCommand(
     throw new Error("Deleting a database isn't supported from the command bar — select it and press d instead.")
   }
 
-  return plan
+  return { kind: "plan", plan }
 }

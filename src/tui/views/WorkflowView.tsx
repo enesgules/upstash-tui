@@ -62,7 +62,12 @@ export function WorkflowView({
 
   const w = mockWorkflowMetrics
   const metrics: MetricItem[] = live
-    ? ["Workflow Messages", "Workflow Runs", "Bandwidth", "Cost"].map((label) => ({ label, value: "—" }))
+    ? [
+        { label: "Workflow Messages", value: "—" },
+        { label: "Workflow Runs", value: String(runs.length), color: ACCENT },
+        { label: "Bandwidth", value: "—" },
+        { label: "Cost", value: "—" },
+      ]
     : [
         { label: "Workflow Messages", value: String(w.messages) },
         { label: "Workflow Runs", value: String(w.runs), color: ACCENT },

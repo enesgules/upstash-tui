@@ -22,13 +22,15 @@ export function ProductNav({ activeKey }: { activeKey: ProductKey }) {
     >
       {products.map((p) => {
         const active = p.key === activeKey
+        // Flag not-yet-available products with a ○ so the "coming soon" signal
+        // from the home screen carries into the nav.
         return (
           <text
             key={p.key}
             fg={active ? p.color : theme.textFaint}
             attributes={active ? TextAttributes.BOLD : 0}
           >
-            {p.name}
+            {p.enabled ? p.name : `○ ${p.name}`}
           </text>
         )
       })}

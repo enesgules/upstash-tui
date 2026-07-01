@@ -18,9 +18,17 @@ test("valid plan JSON from chat -> returns validated plan", async () => {
   }
   const chat: ChatFn = async () => JSON.stringify(validPlan)
 
-  const plan = await planFromCommand("rename this database to renamed-db", context, chat)
+  const result = await planFromCommand("rename this database to renamed-db", context, chat)
 
-  expect(plan).toEqual(validPlan)
+  expect(result).toEqual({ kind: "plan", plan: validPlan })
+})
+
+test("answer shape from chat -> returns an answer, not a plan", async () => {
+  const chat: ChatFn = async () => JSON.stringify({ kind: "answer", text: "You have 4 databases." })
+
+  const result = await planFromCommand("how many databases do I have?", context, chat)
+
+  expect(result).toEqual({ kind: "answer", text: "You have 4 databases." })
 })
 
 test("chat emits a well-formed delete op -> refused (never reachable via command bar)", async () => {

@@ -230,3 +230,39 @@ export async function deleteSchedule(creds: QStashCreds, scheduleId: string): Pr
     auth: auth(creds),
   })
 }
+
+// -- Metrics ----------------------------------------------------------------
+
+export type QStashMetrics = {
+  messages: number | null
+  bandwidthBytes: number | null
+  cost: number | null
+}
+
+/**
+ * QStash's public Bearer-token REST API (`https://qstash.upstash.io/v2`,
+ * authenticated with just `QStashCreds.token`) has no usage/metrics endpoint.
+ *
+ * The only usage/stats endpoint that actually exists is
+ * `GET https://api.upstash.com/v2/qstash/stats/{id}`, which returns daily
+ * request counts, billing, and bandwidth series. It lives on the separate
+ * Upstash *account management* API, is authenticated with HTTP Basic Auth
+ * (account email + API key, not a QStash token), and requires the QStash
+ * account's UUID as a path parameter — none of which `QStashCreds` carries.
+ * There is no endpoint to look up that UUID from a QStash token alone, so
+ * this data cannot be reached from the credentials this client has.
+ *
+ * The Bearer-token `GET /v2/events` endpoint (delivery events log) is
+ * cursor-paginated and returns no total count and no bandwidth/cost fields,
+ * so paging through it to "count messages" would mean fetching a caller's
+ * entire, unbounded event history just to approximate one number — not a
+ * sensible or reliable substitute for real usage stats.
+ *
+ * Given all of the above, there is no way to derive real messages,
+ * bandwidth, or cost figures from a QStash token. This intentionally makes
+ * no network call and returns null for every field, so the TUI renders "—"
+ * instead of a fabricated number.
+ */
+export async function getQStashMetrics(_creds: QStashCreds): Promise<QStashMetrics> {
+  return { messages: null, bandwidthBytes: null, cost: null }
+}

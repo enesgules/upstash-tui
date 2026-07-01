@@ -14,6 +14,7 @@ export type RawRedisDatabase = {
   db_disk_threshold?: number | null
   budget?: number | null
   eviction?: boolean
+  prod_pack_enabled?: boolean
   endpoint?: string
   port?: number
   password?: string
@@ -32,6 +33,15 @@ function inferProvider(raw: RawRedisDatabase): string {
   if (/-\d/.test(region)) return "AWS"
   if (/[a-z]\d+$/.test(region)) return "GCP"
   return "AWS"
+}
+
+// Upstash returns int64 max (9223372036854775807) to mean "unlimited". Parsed
+// from JSON that lands well past Number.MAX_SAFE_INTEGER, so any value at or
+// above that threshold is a sentinel, not a real quota — normalize it to null.
+function normalizeLimit(n: number | null | undefined): number | null {
+  if (n === null || n === undefined) return null
+  if (n >= Number.MAX_SAFE_INTEGER) return null
+  return n
 }
 
 function planLabel(type: string | undefined): string {
@@ -57,18 +67,18 @@ export function mapDatabase(raw: RawRedisDatabase): RedisDatabase {
     plan: planLabel(raw.type),
     pinned: false,
     eviction: raw.eviction ?? false,
-    prodPack: Boolean(raw.prod_pack),
+    prodPack: Boolean(raw.prod_pack_enabled),
     commands: {
-      limit: raw.db_request_limit ?? null,
+      limit: normalizeLimit(raw.db_request_limit),
       used: null,
     },
     storage: {
       usedBytes: null,
-      limitBytes: raw.db_disk_threshold ?? null,
+      limitBytes: normalizeLimit(raw.db_disk_threshold),
     },
     cost: {
       current: null,
-      budget: raw.budget ?? null,
+      budget: normalizeLimit(raw.budget),
     },
   }
 }

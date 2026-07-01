@@ -66,3 +66,45 @@ export async function listIndexes(creds: UpstashCreds): Promise<VectorIndex[]> {
   })
   return raw.map(mapIndex)
 }
+
+// GET /v2/vector/index/stats (operation getGlobalVectorStats) returns a
+// GlobalStats object already aggregated by the API across all indexes
+// belonging to the account, so no client-side aggregation is needed.
+export type RawVectorGlobalStats = {
+  record_count?: number
+  request?: number
+  bandwidth?: number
+  storage?: number
+  billing?: number
+  rerank_count?: number
+  [key: string]: unknown
+}
+
+export type VectorMetrics = {
+  count: number | null
+  requests: number | null
+  bandwidthBytes: number | null
+  reranks: number | null
+  storageBytes: number | null
+  cost: number | null
+}
+
+export function mapGlobalStats(raw: RawVectorGlobalStats): VectorMetrics {
+  return {
+    count: raw.record_count ?? null,
+    requests: raw.request ?? null,
+    bandwidthBytes: raw.bandwidth ?? null,
+    reranks: raw.rerank_count ?? null,
+    storageBytes: raw.storage ?? null,
+    cost: raw.billing ?? null,
+  }
+}
+
+export async function getVectorMetrics(creds: UpstashCreds): Promise<VectorMetrics> {
+  const raw = await apiRequest<RawVectorGlobalStats>({
+    method: "GET",
+    url: `${BASE_URL}/index/stats`,
+    auth: auth(creds),
+  })
+  return mapGlobalStats(raw)
+}

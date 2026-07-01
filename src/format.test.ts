@@ -6,7 +6,16 @@ import {
   formatCount,
   formatStorage,
   formatBudget,
+  truncate,
 } from "./format.ts"
+
+test("truncate", () => {
+  expect(truncate("short", 10)).toBe("short")
+  expect(truncate("exactly-ten", 11)).toBe("exactly-ten")
+  expect(truncate("backup-02-15-context7-prod", 16)).toBe("backup-02-15-co…")
+  expect(truncate("abc", 1)).toBe("…")
+  expect(truncate("abc", 0)).toBe("")
+})
 
 test("formatCompactNumber", () => {
   expect(formatCompactNumber(999)).toBe("999")

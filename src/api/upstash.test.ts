@@ -46,6 +46,22 @@ describe("mapDatabase", () => {
     expect(mapped.cost.budget).toBeNull()
   })
 
+  test("treats the int64-max sentinel as unlimited (null)", () => {
+    const raw: RawRedisDatabase = {
+      database_id: "db-unlimited",
+      database_name: "unlimited-db",
+      primary_region: "us-east-1",
+      type: "pro",
+      // int64 max — Upstash's "unlimited" sentinel
+      db_request_limit: 9223372036854775807,
+      db_disk_threshold: 100 * 1024 ** 3,
+      budget: null,
+    }
+    const mapped = mapDatabase(raw)
+    expect(mapped.commands.limit).toBeNull()
+    expect(mapped.storage.limitBytes).toBe(100 * 1024 ** 3)
+  })
+
   test("maps plan label for free", () => {
     const raw: RawRedisDatabase = {
       database_id: "db-free",

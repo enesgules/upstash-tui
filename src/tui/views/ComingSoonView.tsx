@@ -48,7 +48,9 @@ export function ComingSoonView({
           Coming soon
         </text>
         <text fg={theme.textFaint}>Not available in upstash-tui yet.</text>
-        <text fg={theme.textFaint}>Press Esc to go back home.</text>
+        <text fg={theme.textDim}>
+          Press <span fg={theme.accent}>Tab</span> to switch to another product · <span fg={theme.accent}>Esc</span> for home
+        </text>
       </box>
     </box>
   )
