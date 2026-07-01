@@ -91,7 +91,11 @@ export function RedisDashboard({
   const visibleDatabases = query
     ? databases.filter((d) => d.name.toLowerCase().includes(query))
     : databases
-  const selected: RedisDatabase | undefined = visibleDatabases[selectedIndex]
+  // Clamp against the *filtered* list so a refresh while a search is active
+  // (which clamps selectedIndex against the unfiltered length) can't leave the
+  // details panel blank when matches still exist.
+  const selected: RedisDatabase | undefined =
+    visibleDatabases[Math.min(selectedIndex, Math.max(0, visibleDatabases.length - 1))]
 
   function onSearchInput(value: string) {
     setSearch(value)

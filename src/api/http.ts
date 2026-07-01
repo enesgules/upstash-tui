@@ -33,5 +33,10 @@ export async function apiRequest<T>(opts: {
     throw new UpstashApiError(response.status, text || response.statusText)
   }
 
-  return (text ? JSON.parse(text) : undefined) as T
+  if (!text) return undefined as T
+  try {
+    return JSON.parse(text) as T
+  } catch {
+    throw new UpstashApiError(response.status, `Unexpected non-JSON response: ${text.slice(0, 200)}`)
+  }
 }

@@ -26,6 +26,10 @@ export async function chatJSON(creds: OpenRouterCreds, system: string, user: str
     throw new Error(`OpenRouter request failed (${response.status}): ${body}`)
   }
 
-  const data = (await response.json()) as { choices: Array<{ message: { content: string } }> }
-  return data.choices[0].message.content
+  const data = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> }
+  const content = data.choices?.[0]?.message?.content
+  if (typeof content !== "string") {
+    throw new Error("OpenRouter returned no message content")
+  }
+  return content
 }

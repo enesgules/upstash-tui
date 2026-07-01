@@ -7,6 +7,12 @@ import * as realQstash from "../api/qstash.ts"
 // fall back to a sensible default rather than sending an undefined region.
 const DEFAULT_CREATE_REGION = "us-east-1"
 
+// GCP regions look like "us-central1" (no dash before the trailing digits);
+// AWS like "us-east-1". Mirrors inferProvider in api/upstash.ts.
+function platformForRegion(region: string): "aws" | "gcp" {
+  return /[a-z]\d+$/.test(region) && !/-\d/.test(region) ? "gcp" : "aws"
+}
+
 export type ExecuteDeps = {
   api: {
     createDatabase: (creds: UpstashCreds, input: any) => Promise<any>
@@ -116,10 +122,11 @@ export async function executePlan(plan: OperationPlan, ctx: ExecuteContext): Pro
           break
         }
         case "redis.create": {
+          const region = op.region ?? DEFAULT_CREATE_REGION
           const created = await deps.api.createDatabase(creds!, {
             name: op.name,
-            platform: "aws",
-            primaryRegion: op.region ?? DEFAULT_CREATE_REGION,
+            platform: platformForRegion(region),
+            primaryRegion: region,
             plan: op.plan,
           })
           messages.push(`Created database "${op.name ?? created?.name}"`)
@@ -158,6 +165,12 @@ export async function executePlan(plan: OperationPlan, ctx: ExecuteContext): Pro
           await deps.qstash.deleteDlqMessage(qstash!, op.dlqId)
           messages.push(`Deleted DLQ message ${op.name}`)
           break
+        }
+        default: {
+          // Exhaustiveness guard: a new op type added to the union without a
+          // case here becomes a compile error instead of a silent no-op.
+          const _exhaustive: never = op
+          throw new Error(`Unhandled operation type: ${(_exhaustive as { type: string }).type}`)
         }
       }
     } catch (error) {

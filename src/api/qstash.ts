@@ -201,6 +201,9 @@ export async function publishMessage(
 
   const parsed = (text ? JSON.parse(text) : undefined) as RawPublishResponse
   const first = Array.isArray(parsed) ? parsed[0] : parsed
+  if (!first?.messageId) {
+    throw new UpstashApiError(response.status, "QStash publish returned no messageId")
+  }
   return { messageId: first.messageId }
 }
 
