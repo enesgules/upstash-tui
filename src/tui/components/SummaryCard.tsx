@@ -18,9 +18,9 @@ export function SummaryCard({
   storageBytes,
   cost,
 }: {
-  commands: number
-  storageBytes: number
-  cost: number
+  commands: number | null
+  storageBytes: number | null
+  cost: number | null
 }) {
   return (
     <box
@@ -37,9 +37,9 @@ export function SummaryCard({
         gap: 6,
       }}
     >
-      <Metric label="Commands" value={formatCompactNumber(commands)} />
-      <Metric label="Storage" value={formatBytes(storageBytes)} />
-      <Metric label="Cost" value={formatCost(cost)} />
+      <Metric label="Commands" value={commands === null ? "—" : formatCompactNumber(commands)} />
+      <Metric label="Storage" value={storageBytes === null ? "—" : formatBytes(storageBytes)} />
+      <Metric label="Cost" value={cost === null ? "—" : formatCost(cost)} />
     </box>
   )
 }

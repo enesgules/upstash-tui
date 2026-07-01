@@ -7,6 +7,7 @@ export type RedisDatabase = {
   provider: string
   region: string
   pinned: boolean
+  eviction: boolean
   commands: { used: number | null; limit: number | null }
   storage: { usedBytes: number | null; limitBytes: number | null }
   cost: { current: number | null; budget: number | null }

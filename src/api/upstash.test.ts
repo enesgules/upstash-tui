@@ -21,6 +21,7 @@ describe("mapDatabase", () => {
       provider: "AWS",
       plan: "Pay as You Go",
       pinned: false,
+    eviction: false,
       commands: { limit: 100000, used: null },
       storage: { usedBytes: null, limitBytes: 268435456 },
       cost: { current: null, budget: 50 },

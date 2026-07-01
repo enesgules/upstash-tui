@@ -13,6 +13,7 @@ export type RawRedisDatabase = {
   db_request_limit?: number | null
   db_disk_threshold?: number | null
   budget?: number | null
+  eviction?: boolean
   endpoint?: string
   port?: number
   password?: string
@@ -55,6 +56,7 @@ export function mapDatabase(raw: RawRedisDatabase): RedisDatabase {
     provider: inferProvider(raw),
     plan: planLabel(raw.type),
     pinned: false,
+    eviction: raw.eviction ?? false,
     commands: {
       limit: raw.db_request_limit ?? null,
       used: null,

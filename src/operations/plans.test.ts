@@ -9,6 +9,7 @@ const db: RedisDatabase = {
   provider: "AWS",
   region: "us-east-1",
   pinned: false,
+    eviction: false,
   commands: { used: null, limit: null },
   storage: { usedBytes: null, limitBytes: null },
   cost: { current: null, budget: null },

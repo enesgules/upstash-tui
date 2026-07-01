@@ -31,6 +31,7 @@ export function DetailsPanel({ db }: { db: RedisDatabase }) {
         <Row label="Commands" value={formatCount(db.commands.used, db.commands.limit)} />
         <Row label="Storage" value={formatStorage(db.storage.usedBytes, db.storage.limitBytes)} />
         <Row label="Cost" value={formatBudget(db.cost.current, db.cost.budget)} />
+        <Row label="Eviction" value={db.eviction ? "Enabled" : "Disabled"} />
       </box>
     </box>
   )

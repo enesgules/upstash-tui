@@ -180,10 +180,12 @@ function ConfirmPrompt({
 }) {
   if (confirm.kind === "yesno") {
     return (
-      <text fg={theme.textDim}>
-        Proceed? <text fg={theme.accent}>y</text> / <text fg={theme.textBright}>N</text>
-        <text fg={theme.textFaint}>{"   (Esc cancels)"}</text>
-      </text>
+      <box style={{ flexDirection: "row", gap: 2, marginTop: 1 }}>
+        <text fg={theme.accent} attributes={TextAttributes.BOLD}>
+          Proceed?  y / N
+        </text>
+        <text fg={theme.textFaint}>Esc cancels</text>
+      </box>
     )
   }
   const matched = value.trim() === confirm.phrase

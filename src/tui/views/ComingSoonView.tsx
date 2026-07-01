@@ -1,10 +1,15 @@
+import { useKeyboard } from "@opentui/react"
 import { TextAttributes } from "@opentui/core"
 import { theme, layout } from "../../theme.ts"
 import { getProduct, type ProductKey } from "../../products.ts"
 import { ProductNav } from "../components/ProductNav.tsx"
 
-export function ComingSoonView({ productKey }: { productKey: ProductKey }) {
+export function ComingSoonView({ productKey, onBack }: { productKey: ProductKey; onBack: () => void }) {
   const product = getProduct(productKey)
+
+  useKeyboard((key) => {
+    if (key.name === "escape") onBack()
+  })
 
   return (
     <box
