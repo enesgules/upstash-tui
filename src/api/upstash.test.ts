@@ -22,6 +22,7 @@ describe("mapDatabase", () => {
       plan: "Pay as You Go",
       pinned: false,
     eviction: false,
+      prodPack: false,
       commands: { limit: 100000, used: null },
       storage: { usedBytes: null, limitBytes: 268435456 },
       cost: { current: null, budget: 50 },

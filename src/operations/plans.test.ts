@@ -10,6 +10,7 @@ const db: RedisDatabase = {
   region: "us-east-1",
   pinned: false,
     eviction: false,
+  prodPack: false,
   commands: { used: null, limit: null },
   storage: { usedBytes: null, limitBytes: null },
   cost: { current: null, budget: null },

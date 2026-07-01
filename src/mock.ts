@@ -13,6 +13,10 @@ export const databases: RedisDatabase[] = [
     region: "us-east-1",
     pinned: true,
     eviction: false,
+    prodPack: true,
+    stats: {
+      throughput: [40, 120, 90, 200, 160, 240, 180, 260, 210, 300, 250, 320].map((y, x) => ({ x, y })),
+    },
     commands: { used: 12_400_000, limit: null },
     storage: { usedBytes: 8 * GB, limitBytes: 100 * GB },
     cost: { current: 41.2, budget: 5000 },
@@ -25,6 +29,10 @@ export const databases: RedisDatabase[] = [
     region: "us-east-1",
     pinned: true,
     eviction: false,
+    prodPack: false,
+    stats: {
+      throughput: [10, 60, 20, 80, 30, 90, 40, 100, 50, 110, 45, 95].map((y, x) => ({ x, y })),
+    },
     commands: { used: 2_000_000, limit: null },
     storage: { usedBytes: 3 * GB, limitBytes: 100 * GB },
     cost: { current: 4.14, budget: 5000 },
@@ -37,6 +45,10 @@ export const databases: RedisDatabase[] = [
     region: "eu-west-1",
     pinned: false,
     eviction: false,
+    prodPack: false,
+    stats: {
+      throughput: [5, 6, 5, 7, 6, 6, 7, 6, 5, 6, 7, 6].map((y, x) => ({ x, y })),
+    },
     commands: { used: 480_000, limit: 10_000_000 },
     storage: { usedBytes: 0.4 * GB, limitBytes: 0.25 * GB },
     cost: { current: 0, budget: null },
@@ -49,6 +61,10 @@ export const databases: RedisDatabase[] = [
     region: "us-central1",
     pinned: false,
     eviction: false,
+    prodPack: true,
+    stats: {
+      throughput: [80, 90, 140, 130, 200, 190, 260, 240, 300, 280, 340, 360].map((y, x) => ({ x, y })),
+    },
     commands: { used: 30_100_000, limit: null },
     storage: { usedBytes: 199 * GB, limitBytes: 1000 * GB },
     cost: { current: 160.21, budget: 500 },

@@ -1,5 +1,8 @@
 export type Risk = "safe" | "paid" | "destructive"
 
+export type MetricPoint = { x: number; y: number }
+export type RedisStats = { throughput: MetricPoint[] }
+
 export type RedisDatabase = {
   id: string
   name: string
@@ -8,6 +11,8 @@ export type RedisDatabase = {
   region: string
   pinned: boolean
   eviction: boolean
+  prodPack: boolean
+  stats?: RedisStats
   commands: { used: number | null; limit: number | null }
   storage: { usedBytes: number | null; limitBytes: number | null }
   cost: { current: number | null; budget: number | null }

@@ -57,6 +57,7 @@ export function mapDatabase(raw: RawRedisDatabase): RedisDatabase {
     plan: planLabel(raw.type),
     pinned: false,
     eviction: raw.eviction ?? false,
+    prodPack: Boolean(raw.prod_pack),
     commands: {
       limit: raw.db_request_limit ?? null,
       used: null,

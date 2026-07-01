@@ -15,6 +15,22 @@ test("at least one database is pinned", () => {
   expect(databases.some((d) => d.pinned)).toBe(true)
 })
 
+test("every database has a prodPack flag and non-empty throughput stats", () => {
+  for (const db of databases) {
+    expect(typeof db.prodPack).toBe("boolean")
+    expect(db.stats?.throughput.length ?? 0).toBeGreaterThan(0)
+    for (const point of db.stats!.throughput) {
+      expect(typeof point.x).toBe("number")
+      expect(typeof point.y).toBe("number")
+    }
+  }
+})
+
+test("at least one database has prodPack enabled and one disabled", () => {
+  expect(databases.some((d) => d.prodPack)).toBe(true)
+  expect(databases.some((d) => !d.prodPack)).toBe(true)
+})
+
 test("redisSummary aggregates the databases", () => {
   const commands = databases.reduce((s, d) => s + (d.commands.used ?? 0), 0)
   const storage = databases.reduce((s, d) => s + (d.storage.usedBytes ?? 0), 0)
