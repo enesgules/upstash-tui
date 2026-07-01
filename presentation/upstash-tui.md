@@ -17,6 +17,14 @@ Developers live in the terminal.
 
 The web console is a context switch — new tab, click through menus, lose your flow.
 
+# Inspired by taws
+---
+layout: center
+subtitle: A terminal UI for AWS · 2.2k stars · Rust · Vim-style
+---
+
+![taws — terminal UI for AWS](assets/taws-ec2.png){width=80 height=22 fit=contain caption="huseyinbabal/taws — resource list + confirm-before-action"}
+
 # Meet upstash-tui
 ---
 layout: section
