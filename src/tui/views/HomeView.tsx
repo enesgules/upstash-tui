@@ -3,8 +3,13 @@ import { useKeyboard } from "@opentui/react"
 import { TextAttributes } from "@opentui/core"
 import { theme } from "../../theme.ts"
 import { products, type Product, type ProductKey } from "../../products.ts"
+import { SwirlLogo } from "../components/SwirlLogo.tsx"
 
 const COLUMNS = 2
+
+// Temporary: lets us compare the two logo layouts live (press `t`) before
+// committing to one. Remove the toggle once a layout is chosen.
+type LogoLayout = "top" | "left"
 
 function ProductCard({ product, selected }: { product: Product; selected: boolean }) {
   return (
@@ -37,6 +42,7 @@ function ProductCard({ product, selected }: { product: Product; selected: boolea
 
 export function HomeView({ onOpen }: { onOpen: (key: ProductKey) => void }) {
   const [selectedIndex, setSelectedIndex] = useState(0)
+  const [logoLayout, setLogoLayout] = useState<LogoLayout>("top")
   const lastIndex = products.length - 1
   // Mirror the selection in a ref so Enter always opens the highlighted card,
   // even when a move key and Enter arrive in the same tick (batched events).
@@ -61,6 +67,8 @@ export function HomeView({ onOpen }: { onOpen: (key: ProductKey) => void }) {
       move((i) => i - COLUMNS)
     } else if (key.name === "return" || key.name === "enter") {
       onOpen(products[indexRef.current]!.key)
+    } else if (key.name === "t") {
+      setLogoLayout((l) => (l === "top" ? "left" : "top"))
     }
   })
 
@@ -81,7 +89,17 @@ export function HomeView({ onOpen }: { onOpen: (key: ProductKey) => void }) {
         gap: 1,
       }}
     >
-      <ascii-font text="UPSTASH" font="block" color={[theme.accent, theme.accentLight]} />
+      {logoLayout === "top" ? (
+        <box style={{ flexDirection: "column", alignItems: "center", gap: 1 }}>
+          <SwirlLogo width={30} height={24} />
+          <ascii-font text="UPSTASH" font="block" color={[theme.accent, theme.accentLight]} />
+        </box>
+      ) : (
+        <box style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
+          <SwirlLogo width={22} height={16} />
+          <ascii-font text="UPSTASH" font="block" color={[theme.accent, theme.accentLight]} />
+        </box>
+      )}
 
       <box style={{ flexDirection: "column", alignItems: "center", gap: 1, marginTop: 1 }}>
         {rows.map((row, r) => (
@@ -98,7 +116,7 @@ export function HomeView({ onOpen }: { onOpen: (key: ProductKey) => void }) {
       </box>
 
       <text fg={theme.textFaint} attributes={TextAttributes.DIM}>
-        ↑ ↓ ← → navigate · enter open · ctrl+c quit
+        ↑ ↓ ← → navigate · enter open · t toggle logo ({logoLayout}) · ctrl+c quit
       </text>
     </box>
   )

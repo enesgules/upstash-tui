@@ -30,10 +30,18 @@ function describe(op: OperationPlan["operations"][number]): string {
       return `${op.enabled ? "Enable" : "Disable"} eviction on ${op.databaseId}`
     case "redis.updateBudget":
       return `Set monthly budget to $${op.budget} on ${op.databaseId}`
-    case "redis.generateEnv":
-      return `Generate .env.local for ${op.databaseId}`
     case "redis.delete":
       return `Delete database "${op.name}"`
+    case "qstash.publish":
+      return `Publish a message to ${op.destination}${op.delaySeconds ? ` (delay ${op.delaySeconds}s)` : ""}`
+    case "qstash.pauseSchedule":
+      return `Pause schedule ${op.name}`
+    case "qstash.resumeSchedule":
+      return `Resume schedule ${op.name}`
+    case "qstash.deleteSchedule":
+      return `Delete schedule ${op.name}`
+    case "qstash.deleteDlq":
+      return `Delete DLQ message ${op.name}`
   }
 }
 

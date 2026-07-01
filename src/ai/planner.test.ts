@@ -23,6 +23,19 @@ test("valid plan JSON from chat -> returns validated plan", async () => {
   expect(plan).toEqual(validPlan)
 })
 
+test("chat emits a well-formed delete op -> refused (never reachable via command bar)", async () => {
+  const deletePlan: OperationPlan = {
+    title: "Delete database",
+    summary: "Deletes my-db",
+    risk: "destructive",
+    requiresConfirmation: true,
+    operations: [{ type: "redis.delete", databaseId: "db_1", name: "my-db" }],
+  }
+  const chat: ChatFn = async () => JSON.stringify(deletePlan)
+
+  await expect(planFromCommand("delete my-db", context, chat)).rejects.toThrow(/isn't supported from the command bar/)
+})
+
 test("chat returns error object -> throws with the error message", async () => {
   const chat: ChatFn = async () => JSON.stringify({ error: "unsupported" })
 
@@ -54,7 +67,6 @@ test("system prompt passed to chat includes context and allowed op types", async
   expect(capturedSystem).toContain("redis.rename")
   expect(capturedSystem).toContain("redis.toggleEviction")
   expect(capturedSystem).toContain("redis.updateBudget")
-  expect(capturedSystem).toContain("redis.generateEnv")
   expect(capturedSystem).toContain("db_1")
   expect(capturedSystem).toContain("my-db")
   expect(capturedSystem).toContain("us-east-1")

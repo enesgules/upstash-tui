@@ -9,7 +9,6 @@ const OP_TYPES = [
   "redis.rename",
   "redis.toggleEviction",
   "redis.updateBudget",
-  "redis.generateEnv",
   "redis.delete",
 ] as const
 
@@ -54,10 +53,6 @@ function validateOperation(op: unknown, index: number): OperationPlan["operation
       if (typeof op.databaseId !== "string") fail(`operations[${index}] (redis.updateBudget) requires string "databaseId"`)
       if (typeof op.budget !== "number") fail(`operations[${index}] (redis.updateBudget) requires number "budget"`)
       return { type: "redis.updateBudget", databaseId: op.databaseId, budget: op.budget }
-    }
-    case "redis.generateEnv": {
-      if (typeof op.databaseId !== "string") fail(`operations[${index}] (redis.generateEnv) requires string "databaseId"`)
-      return { type: "redis.generateEnv", databaseId: op.databaseId }
     }
     case "redis.delete": {
       if (typeof op.databaseId !== "string") fail(`operations[${index}] (redis.delete) requires string "databaseId"`)

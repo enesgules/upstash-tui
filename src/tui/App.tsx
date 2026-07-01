@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { products, type ProductKey } from "../products.ts"
-import { loadConfig } from "../config.ts"
+import { loadConfig, missingUpstashVars } from "../config.ts"
 import { HomeView } from "./views/HomeView.tsx"
 import { RedisDashboard } from "./views/RedisDashboard.tsx"
 import { QStashView } from "./views/QStashView.tsx"
@@ -53,14 +53,9 @@ export function App() {
     return <RedisDashboard mode="demo" creds={null} openrouter={config.openrouter} onHome={goHome} onCycle={cycle} />
   }
 
-  const missing = [
-    process.env.UPSTASH_EMAIL?.trim() ? null : "UPSTASH_EMAIL",
-    process.env.UPSTASH_API_KEY?.trim() ? null : "UPSTASH_API_KEY",
-  ].filter((v): v is string => v !== null)
-
   return (
     <SetupView
-      missing={missing}
+      missing={missingUpstashVars()}
       hasOpenRouter={!!config.openrouter}
       onRetry={() => setConfig(loadConfig())}
       onDemo={() => setDemo(true)}

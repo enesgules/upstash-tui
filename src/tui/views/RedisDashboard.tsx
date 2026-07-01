@@ -14,7 +14,7 @@ import { listDatabases } from "../../api/upstash.ts"
 import { chatJSON } from "../../api/openrouter.ts"
 import { planFromCommand } from "../../ai/planner.ts"
 import { executePlan } from "../../operations/execute.ts"
-import { toggleEvictionPlan, generateEnvPlan, deletePlan } from "../../operations/plans.ts"
+import { toggleEvictionPlan, deletePlan } from "../../operations/plans.ts"
 
 type Mode = "live" | "demo"
 
@@ -156,8 +156,6 @@ export function RedisDashboard({
       setCommandFocused(true)
     } else if (selected && key.name === "e") {
       openPreview(toggleEvictionPlan(selected, !selected.eviction))
-    } else if (selected && key.name === "g") {
-      openPreview(generateEnvPlan(selected))
     } else if (selected && key.name === "d") {
       openPreview(deletePlan(selected))
     }
@@ -192,7 +190,7 @@ export function RedisDashboard({
       </box>
 
       <text fg={theme.textFaint}>
-        ↑↓ select · tab switch product · e eviction · g env · d delete · r refresh{openrouter ? " · / ask AI" : ""} · esc home
+        ↑↓ select · tab switch product · e eviction · d delete · r refresh{openrouter ? " · / ask AI" : ""} · esc home
       </text>
 
       <CommandBar

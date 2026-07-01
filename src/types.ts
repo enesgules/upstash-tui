@@ -28,8 +28,12 @@ export type OperationPlan = {
     | { type: "redis.rename"; databaseId: string; newName: string }
     | { type: "redis.toggleEviction"; databaseId: string; enabled: boolean }
     | { type: "redis.updateBudget"; databaseId: string; budget: number }
-    | { type: "redis.generateEnv"; databaseId: string }
     | { type: "redis.delete"; databaseId: string; name: string }
+    | { type: "qstash.publish"; destination: string; body: string; delaySeconds?: number }
+    | { type: "qstash.pauseSchedule"; scheduleId: string; name: string }
+    | { type: "qstash.resumeSchedule"; scheduleId: string; name: string }
+    | { type: "qstash.deleteSchedule"; scheduleId: string; name: string }
+    | { type: "qstash.deleteDlq"; dlqId: string; name: string }
   >
   generatedFiles?: Array<{ path: string; content: string }>
 }

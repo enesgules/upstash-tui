@@ -33,3 +33,11 @@ export function loadConfig(): Config {
 
   return { upstash, openrouter, qstash }
 }
+
+// Which Upstash env vars are missing, using the same trimming as loadConfig.
+export function missingUpstashVars(): string[] {
+  return [
+    readEnv("UPSTASH_EMAIL") ? null : "UPSTASH_EMAIL",
+    readEnv("UPSTASH_API_KEY") ? null : "UPSTASH_API_KEY",
+  ].filter((v): v is string => v !== null)
+}

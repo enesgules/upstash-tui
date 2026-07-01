@@ -46,11 +46,12 @@ Allowed operation object shapes (the "type" field is required and must be exactl
 - { "type": "redis.rename", "databaseId": string, "newName": string }
 - { "type": "redis.toggleEviction", "databaseId": string, "enabled": boolean }
 - { "type": "redis.updateBudget", "databaseId": string, "budget": number }
-- { "type": "redis.generateEnv", "databaseId": string }
 
 Risk rules (set "risk" and "requiresConfirmation" accordingly):
-- "redis.create" -> risk "paid", requiresConfirmation true.
-- "redis.rename", "redis.toggleEviction", "redis.updateBudget", "redis.generateEnv" -> risk
+- "redis.create" -> risk "paid", requiresConfirmation true. Always set "region"; if the user
+  doesn't specify one, pick a sensible default from the available regions in context (use
+  "us-east-1" if none are listed).
+- "redis.rename", "redis.toggleEviction", "redis.updateBudget" -> risk
   "safe", requiresConfirmation true.
 - There is NO delete/destroy operation type available to you. Deleting a database is NOT
   supported by this planner - if the user asks to delete/destroy a database, reply with the
@@ -107,9 +108,19 @@ export async function planFromCommand(
     throw new Error((parsed as { error: string }).error)
   }
 
+  let plan: OperationPlan
   try {
-    return validatePlan(parsed)
+    plan = validatePlan(parsed)
   } catch (error) {
     throw new Error(`Couldn't turn that into a valid plan: ${(error as Error).message}`)
   }
+
+  // Deletion is deliberately unreachable from the AI command bar: even if the
+  // model ignores the prompt and emits a delete op, we refuse it here. Deleting
+  // stays a code-driven, name-confirmed action (press `d` on a database).
+  if (plan.operations.some((op) => op.type === "redis.delete")) {
+    throw new Error("Deleting a database isn't supported from the command bar — select it and press d instead.")
+  }
+
+  return plan
 }

@@ -9,7 +9,6 @@ const SUGGESTIONS = [
   "enable eviction on context7-analytics",
   "create a redis db in eu-west-1 for session storage",
   "rename context7-mcp-sessions to mcp-cache",
-  "generate a .env for context7-prod",
 ]
 
 const ROTATE_MS = 3500

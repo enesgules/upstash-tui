@@ -31,16 +31,6 @@ export function updateBudgetPlan(db: RedisDatabase, budget: number): OperationPl
   }
 }
 
-export function generateEnvPlan(db: RedisDatabase): OperationPlan {
-  return {
-    title: `Generate .env for "${db.name}"`,
-    summary: `Fetch credentials for database "${db.name}" (${db.id}) and write a .env.local snippet.`,
-    risk: "safe",
-    requiresConfirmation: true,
-    operations: [{ type: "redis.generateEnv", databaseId: db.id }],
-  }
-}
-
 export function createPlan(input: { name: string; region?: string; plan?: string }): OperationPlan {
   return {
     title: `Create database "${input.name}"`,
@@ -58,5 +48,60 @@ export function deletePlan(db: RedisDatabase): OperationPlan {
     risk: "destructive",
     requiresConfirmation: true,
     operations: [{ type: "redis.delete", databaseId: db.id, name: db.name }],
+  }
+}
+
+// -- QStash plan builders -------------------------------------------------
+
+export function publishPlan(input: { destination: string; body: string; delaySeconds?: number }): OperationPlan {
+  const when = input.delaySeconds ? ` after a ${input.delaySeconds}s delay` : ""
+  return {
+    title: `Publish message to ${input.destination}`,
+    summary: `Deliver a message to ${input.destination}${when}. This sends a real request and may incur cost.`,
+    risk: "paid",
+    requiresConfirmation: true,
+    operations: [
+      { type: "qstash.publish", destination: input.destination, body: input.body, delaySeconds: input.delaySeconds },
+    ],
+  }
+}
+
+export function pauseSchedulePlan(scheduleId: string, name: string): OperationPlan {
+  return {
+    title: `Pause schedule ${name}`,
+    summary: `Pause the schedule for ${name}. It will stop firing until resumed.`,
+    risk: "safe",
+    requiresConfirmation: true,
+    operations: [{ type: "qstash.pauseSchedule", scheduleId, name }],
+  }
+}
+
+export function resumeSchedulePlan(scheduleId: string, name: string): OperationPlan {
+  return {
+    title: `Resume schedule ${name}`,
+    summary: `Resume the paused schedule for ${name}.`,
+    risk: "safe",
+    requiresConfirmation: true,
+    operations: [{ type: "qstash.resumeSchedule", scheduleId, name }],
+  }
+}
+
+export function deleteSchedulePlan(scheduleId: string, name: string): OperationPlan {
+  return {
+    title: `Delete schedule ${name}`,
+    summary: `Permanently delete the schedule for ${name}. This cannot be undone.`,
+    risk: "destructive",
+    requiresConfirmation: true,
+    operations: [{ type: "qstash.deleteSchedule", scheduleId, name }],
+  }
+}
+
+export function deleteDlqPlan(dlqId: string, name: string): OperationPlan {
+  return {
+    title: `Delete DLQ message`,
+    summary: `Remove the failed message ${name} from the dead-letter queue.`,
+    risk: "safe",
+    requiresConfirmation: true,
+    operations: [{ type: "qstash.deleteDlq", dlqId, name }],
   }
 }

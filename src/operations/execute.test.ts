@@ -7,7 +7,6 @@ const creds: UpstashCreds = { email: "a@b.com", apiKey: "key" }
 
 function fakeApi(overrides: Partial<ExecuteDeps["api"]> = {}): ExecuteDeps["api"] {
   return {
-    getDatabase: mock(async () => ({})),
     createDatabase: mock(async () => ({})),
     renameDatabase: mock(async () => {}),
     enableEviction: mock(async () => {}),
@@ -21,7 +20,6 @@ function fakeApi(overrides: Partial<ExecuteDeps["api"]> = {}): ExecuteDeps["api"
 describe("executePlan demo mode", () => {
   test("performs no side effects and returns a demo message", async () => {
     const api = fakeApi()
-    const writeFile = mock(async () => {})
     const plan: OperationPlan = {
       title: "Rename",
       summary: "Rename db",
@@ -30,13 +28,12 @@ describe("executePlan demo mode", () => {
       operations: [{ type: "redis.rename", databaseId: "db-1", newName: "new-name" }],
     }
 
-    const result = await executePlan(plan, { mode: "demo", creds, deps: { api, writeFile } })
+    const result = await executePlan(plan, { mode: "demo", creds, deps: { api } })
 
     expect(result.ok).toBe(true)
     expect(result.messages[0]).toContain("Demo mode")
     expect(result.files).toEqual([])
     expect(api.renameDatabase).not.toHaveBeenCalled()
-    expect(writeFile).not.toHaveBeenCalled()
   })
 })
 
@@ -72,40 +69,6 @@ describe("executePlan live mode", () => {
     expect(result.messages[0]).toContain("new-name")
   })
 
-  test("generateEnv fetches the db, writes the file, and reports it", async () => {
-    const api = fakeApi({
-      getDatabase: mock(async () => ({
-        database_name: "my-cache",
-        endpoint: "example.upstash.io",
-        port: 6379,
-        password: "secret",
-        rest_token: "token-123",
-      })),
-    })
-    const generateEnv = mock((_name: string, _secrets: unknown) => "FAKE_ENV_CONTENT\n")
-    const writeFile = mock(async () => {})
-
-    const plan: OperationPlan = {
-      title: "Generate env",
-      summary: "Generate env",
-      risk: "safe",
-      requiresConfirmation: true,
-      operations: [{ type: "redis.generateEnv", databaseId: "db-1" }],
-    }
-
-    const result = await executePlan(plan, { mode: "live", creds, deps: { api, generateEnv, writeFile } })
-
-    expect(api.getDatabase).toHaveBeenCalledWith(creds, "db-1")
-    expect(generateEnv).toHaveBeenCalledWith("my-cache", {
-      endpoint: "example.upstash.io",
-      port: 6379,
-      password: "secret",
-      restToken: "token-123",
-    })
-    expect(writeFile).toHaveBeenCalledWith(".env.local", "FAKE_ENV_CONTENT\n")
-    expect(result.ok).toBe(true)
-    expect(result.files).toEqual([{ path: ".env.local", content: "FAKE_ENV_CONTENT\n" }])
-  })
 
   test("stops and reports failure when an api call throws", async () => {
     const api = fakeApi({

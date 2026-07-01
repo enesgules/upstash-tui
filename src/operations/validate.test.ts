@@ -7,7 +7,7 @@ function basePlan(overrides: Partial<Record<string, unknown>> = {}) {
     summary: "Does a thing to a database",
     risk: "safe",
     requiresConfirmation: true,
-    operations: [{ type: "redis.generateEnv", databaseId: "db_1" }],
+    operations: [{ type: "redis.rename", databaseId: "db_1", newName: "renamed" }],
     ...overrides,
   }
 }
@@ -42,11 +42,6 @@ test("accepts a valid redis.updateBudget plan", () => {
     basePlan({ operations: [{ type: "redis.updateBudget", databaseId: "db_1", budget: 25 }] }),
   )
   expect(plan.operations[0]).toEqual({ type: "redis.updateBudget", databaseId: "db_1", budget: 25 })
-})
-
-test("accepts a valid redis.generateEnv plan", () => {
-  const plan = validatePlan(basePlan())
-  expect(plan.operations[0]).toEqual({ type: "redis.generateEnv", databaseId: "db_1" })
 })
 
 test("accepts valid generatedFiles", () => {
