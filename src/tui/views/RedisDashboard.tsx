@@ -185,10 +185,12 @@ export function RedisDashboard({
         })),
       }
       const result = await planFromCommand(command, context, chat)
-      setCommandFocused(false)
       if (result.kind === "plan") {
+        setCommandFocused(false)
         openPreview(result.plan)
       } else {
+        // Keep the bar focused so the user can ask a follow-up immediately;
+        // Esc exits the command flow and dismisses the answer.
         setAnswer(result.text)
       }
     } catch (e) {
@@ -202,7 +204,10 @@ export function RedisDashboard({
     if (preview) return // the preview modal owns keyboard while open
     if (commandBusy) return
     if (commandFocused) {
-      if (key.name === "escape") setCommandFocused(false)
+      if (key.name === "escape") {
+        setCommandFocused(false)
+        setAnswer(null)
+      }
       return // typing flows to the command input
     }
     if (searchFocused) {
@@ -348,7 +353,7 @@ function AnswerCard({ text }: { text: string }) {
       }}
     >
       <text fg={theme.textBright}>{text}</text>
-      <text fg={theme.textFaint}>Esc to dismiss</text>
+      <text fg={theme.textFaint}>Keep typing to ask again · Esc to close</text>
     </box>
   )
 }

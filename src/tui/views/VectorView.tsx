@@ -96,6 +96,13 @@ export function VectorView({
   const v = mockVectorMetrics
   const lm = liveMetrics
   const num = (n: number | null | undefined, fmt: (x: number) => string) => (n == null ? "—" : fmt(n))
+  // Vector limit fields use -1 (and occasionally the int64-max sentinel) to mean
+  // "unlimited"; render that as text rather than a bare -1.
+  const limitText = (n: number | null | undefined) => {
+    if (n == null) return "—"
+    if (n < 0 || n >= Number.MAX_SAFE_INTEGER) return "No limit"
+    return formatCompactNumber(n)
+  }
   const metrics: MetricItem[] = live
     ? [
         { label: "Count", value: num(lm?.count, formatCompactNumber), color: ACCENT },
@@ -240,9 +247,9 @@ export function VectorView({
 
                 <box style={{ flexDirection: "column" }}>
                   <SectionLabel text="LIMITS" />
-                  <Row label="Max vectors" value={num(selected.maxVectorCount, formatCompactNumber)} />
-                  <Row label="Daily queries" value={num(selected.maxDailyQueries, formatCompactNumber)} />
-                  <Row label="Daily updates" value={num(selected.maxDailyUpdates, formatCompactNumber)} />
+                  <Row label="Max vectors" value={limitText(selected.maxVectorCount)} />
+                  <Row label="Daily queries" value={limitText(selected.maxDailyQueries)} />
+                  <Row label="Daily updates" value={limitText(selected.maxDailyUpdates)} />
                 </box>
 
                 <box style={{ flexDirection: "column" }}>

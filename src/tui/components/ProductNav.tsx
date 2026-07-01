@@ -22,15 +22,15 @@ export function ProductNav({ activeKey }: { activeKey: ProductKey }) {
     >
       {products.map((p) => {
         const active = p.key === activeKey
-        // Flag not-yet-available products with a ○ so the "coming soon" signal
-        // from the home screen carries into the nav.
+        // Each product leads with its brand glyph (same marks as the home grid);
+        // not-yet-available products keep a trailing ○ "coming soon" signal.
         return (
           <text
             key={p.key}
             fg={active ? p.color : theme.textFaint}
             attributes={active ? TextAttributes.BOLD : 0}
           >
-            {p.enabled ? p.name : `○ ${p.name}`}
+            {p.enabled ? `${p.glyph} ${p.name}` : `${p.glyph} ${p.name} ○`}
           </text>
         )
       })}

@@ -4,10 +4,11 @@ import { truncate } from "../../format.ts"
 import type { RedisDatabase } from "../../types.ts"
 import { Sparkline } from "./Sparkline.tsx"
 
-// Column budget for a row's name, derived from the list width. Leaves room for
-// the pin marker and (when present) the inline sparkline so names never wrap.
-const NAME_MAX_WITH_SPARK = 18
-const NAME_MAX_PLAIN = 26
+// Column budget for a row's name. The selection bar, pin star, and sparkline
+// blocks are all ambiguous-width glyphs (2 cells each), so the budgets leave
+// generous room for them within layout.listWidth to keep names on one line.
+const NAME_MAX_WITH_SPARK = 16
+const NAME_MAX_PLAIN = 28
 
 export function ResourceList({
   databases,
@@ -80,6 +81,7 @@ export function ResourceList({
             const values = db.stats?.throughput.map((p) => p.y) ?? []
             const hasSpark = values.length > 0
             const nameMax = hasSpark ? NAME_MAX_WITH_SPARK : NAME_MAX_PLAIN
+            const rowBg = selected ? theme.accentDim : theme.bgPanel
             return (
               <box
                 key={db.id}
@@ -87,24 +89,26 @@ export function ResourceList({
                   flexDirection: "row",
                   justifyContent: "space-between",
                   alignItems: "center",
-                  backgroundColor: selected ? theme.accentDim : theme.bgPanel,
+                  backgroundColor: rowBg,
                   paddingLeft: 1,
                   paddingRight: 1,
                 }}
               >
                 <box style={{ flexDirection: "row" }}>
-                  <text fg={theme.accent}>{selected ? "▎" : " "}</text>
-                  <text fg={db.pinned ? theme.accent : theme.textFaint}>
-                    {db.pinned ? "★ " : "  "}
-                  </text>
+                  {/* The selection bar and pin star are ambiguous-width glyphs
+                      (measured as 2 cells). Always render both and only recolor
+                      them — hidden ones blend into the row background — so the
+                      name's start column never shifts between rows. */}
+                  <text fg={selected ? theme.accent : rowBg}>{"▎"}</text>
+                  <text fg={db.pinned ? theme.accent : rowBg}>{"★"}</text>
                   <text
                     fg={selected ? theme.textBright : theme.textDim}
                     attributes={selected ? TextAttributes.BOLD : 0}
                   >
-                    {truncate(db.name, nameMax)}
+                    {" " + truncate(db.name, nameMax)}
                   </text>
                 </box>
-                {hasSpark ? <Sparkline values={values} width={7} color={theme.textFaint} /> : null}
+                {hasSpark ? <Sparkline values={values} width={5} color={theme.textFaint} /> : null}
               </box>
             )
           })

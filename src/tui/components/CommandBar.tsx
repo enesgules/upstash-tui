@@ -29,6 +29,9 @@ export function CommandBar({
 }) {
   const valueRef = useRef("")
   const [suggestionIndex, setSuggestionIndex] = useState(0)
+  // Bumping this remounts the input, clearing its text so a follow-up question
+  // starts from empty while the bar keeps focus.
+  const [inputKey, setInputKey] = useState(0)
 
   // Cycle suggestions while idle; hold steady once the user focuses the bar.
   useEffect(() => {
@@ -63,6 +66,7 @@ export function CommandBar({
         <text fg={focused ? theme.accent : theme.textFaint}>{"›"}</text>
         <box style={{ flexGrow: 1 }}>
           <input
+            key={inputKey}
             placeholder={`e.g. ${SUGGESTIONS[suggestionIndex]}`}
             focused={focused && !disabled && !busy}
             textColor={theme.textBright}
@@ -70,7 +74,12 @@ export function CommandBar({
             onInput={(value: string) => {
               valueRef.current = value
             }}
-            onSubmit={() => onSubmit(valueRef.current)}
+            onSubmit={() => {
+              const value = valueRef.current
+              valueRef.current = ""
+              setInputKey((k) => k + 1)
+              onSubmit(value)
+            }}
           />
         </box>
       </box>

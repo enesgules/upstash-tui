@@ -24,7 +24,7 @@ export const productColors = {
 } as const
 
 export const layout = {
-  listWidth: 34,
+  listWidth: 40,
   gap: 1,
   pad: 1,
 } as const

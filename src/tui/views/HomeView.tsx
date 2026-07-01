@@ -1,34 +1,55 @@
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useKeyboard } from "@opentui/react"
 import { TextAttributes } from "@opentui/core"
 import { theme } from "../../theme.ts"
 import { products, type Product, type ProductKey } from "../../products.ts"
+import { shimmerFrame } from "../anim/shimmer.ts"
 import { SwirlLogo } from "../components/SwirlLogo.tsx"
 
 const COLUMNS = 2
+const SHIMMER_MS = 80
 
-function ProductCard({ product, selected }: { product: Product; selected: boolean }) {
+function ProductCard({ product, selected, frame }: { product: Product; selected: boolean; frame: number }) {
+  // The selected card's tagline comes alive: a bright band sweeps across it in
+  // the product's brand color, rendered one <text> per char so each can tint.
+  const cells = selected
+    ? shimmerFrame(product.tagline, frame, { base: product.color, highlight: theme.textBright })
+    : null
+
   return (
     <box
-      title={product.name}
+      title={`${product.glyph} ${product.name}`}
       titleColor={product.color}
       style={{
         border: true,
         borderStyle: "rounded",
         borderColor: selected ? product.color : theme.border,
         backgroundColor: theme.bgPanel,
-        width: 32,
-        height: 5,
-        paddingLeft: 1,
-        paddingRight: 1,
+        width: 36,
+        height: 6,
+        paddingLeft: 2,
+        paddingRight: 2,
         flexDirection: "column",
         justifyContent: "center",
       }}
     >
-      <text fg={selected ? theme.textBright : theme.textDim}>{product.tagline}</text>
-      {/* Availability is the default, so only flag the exception (coming soon).
-          Labeling every ready product "Available" is redundant noise. */}
-      {product.enabled ? null : (
+      {cells ? (
+        <text>
+          {cells.map((cell, i) => (
+            <span key={i} fg={cell.color}>
+              {cell.char}
+            </span>
+          ))}
+        </text>
+      ) : (
+        <text fg={theme.textDim}>{product.tagline}</text>
+      )}
+      {/* Always reserve this second row so the tagline never shifts when a card
+          is selected — only the row's content changes (blank ↔ action hint).
+          Coming-soon is the exception, flagged on every state. */}
+      {product.enabled ? (
+        <text fg={product.color}>{selected ? "↵ open" : " "}</text>
+      ) : (
         <text fg={theme.textFaint} attributes={selected ? TextAttributes.BOLD : 0}>
           ○ Coming soon
         </text>
@@ -39,10 +60,17 @@ function ProductCard({ product, selected }: { product: Product; selected: boolea
 
 export function HomeView({ onOpen }: { onOpen: (key: ProductKey) => void }) {
   const [selectedIndex, setSelectedIndex] = useState(0)
+  const [frame, setFrame] = useState(0)
   const lastIndex = products.length - 1
   // Mirror the selection in a ref so Enter always opens the highlighted card,
   // even when a move key and Enter arrive in the same tick (batched events).
   const indexRef = useRef(0)
+
+  // Drive the selected card's tagline shimmer from a single interval.
+  useEffect(() => {
+    const id = setInterval(() => setFrame((f) => f + 1), SHIMMER_MS)
+    return () => clearInterval(id)
+  }, [])
 
   const move = (next: (i: number) => number) => {
     // Read/write the ref synchronously so rapid consecutive key events (and a
@@ -96,6 +124,7 @@ export function HomeView({ onOpen }: { onOpen: (key: ProductKey) => void }) {
                 key={p.key}
                 product={p}
                 selected={p.key === products[selectedIndex]!.key}
+                frame={frame}
               />
             ))}
           </box>
@@ -103,7 +132,7 @@ export function HomeView({ onOpen }: { onOpen: (key: ProductKey) => void }) {
       </box>
 
       <text fg={theme.textFaint} attributes={TextAttributes.DIM}>
-        ↑ ↓ ← → navigate · enter open · ctrl+c quit
+        ↑ ↓ ← → navigate · ↵ open · ctrl+c quit
       </text>
     </box>
   )

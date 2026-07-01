@@ -50,7 +50,7 @@ const BEZIER_STEPS = 18
 const PADDING = 0.06
 // Spiral reveal shape: how many turns the trace unwinds, and its direction.
 const SPIRAL_TURNS = 1.5
-const SPIRAL_DIR = 1.75
+const SPIRAL_DIR = 0.2
 
 type Point = [number, number]
 
