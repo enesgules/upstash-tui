@@ -4,13 +4,14 @@
   "type": "module",
   "scripts": {
     "start": "bun index.tsx",
-    "dev": "bun --hot index.tsx"
+    "dev": "bun --hot index.tsx",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/bun": "latest"
   },
   "peerDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "^6.0.3"
   },
   "dependencies": {
     "@opentui/core": "^0.4.2",
