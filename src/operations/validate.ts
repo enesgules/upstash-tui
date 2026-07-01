@@ -10,6 +10,7 @@ const OP_TYPES = [
   "redis.toggleEviction",
   "redis.updateBudget",
   "redis.generateEnv",
+  "redis.delete",
 ] as const
 
 function isObject(value: unknown): value is Record<string, unknown> {
@@ -57,6 +58,11 @@ function validateOperation(op: unknown, index: number): OperationPlan["operation
     case "redis.generateEnv": {
       if (typeof op.databaseId !== "string") fail(`operations[${index}] (redis.generateEnv) requires string "databaseId"`)
       return { type: "redis.generateEnv", databaseId: op.databaseId }
+    }
+    case "redis.delete": {
+      if (typeof op.databaseId !== "string") fail(`operations[${index}] (redis.delete) requires string "databaseId"`)
+      if (typeof op.name !== "string") fail(`operations[${index}] (redis.delete) requires string "name"`)
+      return { type: "redis.delete", databaseId: op.databaseId, name: op.name }
     }
     default:
       fail(`operations[${index}].type must be one of ${OP_TYPES.join(", ")}, got ${JSON.stringify(type)}`)

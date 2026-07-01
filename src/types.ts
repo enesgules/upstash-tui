@@ -23,6 +23,7 @@ export type OperationPlan = {
     | { type: "redis.toggleEviction"; databaseId: string; enabled: boolean }
     | { type: "redis.updateBudget"; databaseId: string; budget: number }
     | { type: "redis.generateEnv"; databaseId: string }
+    | { type: "redis.delete"; databaseId: string; name: string }
   >
   generatedFiles?: Array<{ path: string; content: string }>
 }
