@@ -2,6 +2,9 @@ import { theme } from "../../theme.ts"
 import { formatBudget, formatCount, formatStorage } from "../../format.ts"
 import type { RedisDatabase } from "../../types.ts"
 import { UsageBar } from "./UsageBar.tsx"
+import { Sparkline } from "./Sparkline.tsx"
+import { ProdPackBadge } from "./ProdPackBadge.tsx"
+import { EnterpriseNudge } from "./EnterpriseNudge.tsx"
 
 export function DetailsPanel({ db }: { db: RedisDatabase }) {
   return (
@@ -27,6 +30,14 @@ export function DetailsPanel({ db }: { db: RedisDatabase }) {
           <text fg={theme.textDim}>{"Eviction".padEnd(9)}</text>
           <text fg={theme.textBright}>{db.eviction ? "Enabled" : "Disabled"}</text>
         </box>
+      </box>
+      <box style={{ flexDirection: "row", gap: 1, marginTop: 1 }}>
+        <text fg={theme.textDim}>Throughput</text>
+        <Sparkline values={db.stats?.throughput.map((p) => p.y) ?? []} width={24} />
+      </box>
+      <box style={{ flexDirection: "row", gap: 3, marginTop: 1 }}>
+        <ProdPackBadge active={db.prodPack} />
+        <EnterpriseNudge />
       </box>
     </box>
   )
