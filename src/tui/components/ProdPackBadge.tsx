@@ -7,8 +7,8 @@ export function ProdPackBadge({ active }: { active: boolean }) {
       ✓ Prod Pack enabled
     </text>
   ) : (
-    <text fg={productColors.workflow} attributes={TextAttributes.BOLD}>
-      ⚡ Enable Prod Pack — production durability & higher limits
+    <text fg={productColors.workflow} attributes={TextAttributes.BOLD | TextAttributes.UNDERLINE}>
+      ✗ Prod Pack not enabled
     </text>
   )
 }

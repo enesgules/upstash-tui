@@ -1,7 +1,8 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useKeyboard } from "@opentui/react"
 import { TextAttributes } from "@opentui/core"
 import { theme } from "../../theme.ts"
+import { sound } from "../../sound.ts"
 import type { OperationPlan, Risk } from "../../types.ts"
 
 export type ConfirmSpec =
@@ -66,6 +67,25 @@ export function OperationPreview({
   const done = !!result || !!error
   const riskColor = RISK_COLOR[plan.risk]
 
+  // Soft "pop" when the preview modal opens.
+  useEffect(() => {
+    sound.pop()
+  }, [])
+
+  // Chime once the operation resolves: rising for success, descending for error.
+  useEffect(() => {
+    if (result) sound.success()
+  }, [result])
+  useEffect(() => {
+    if (error) sound.error()
+  }, [error])
+
+  // Firing the operation: a weightier "thunk" for destructive ops, a tick otherwise.
+  const fireConfirm = () => {
+    sound[plan.risk === "destructive" ? "delete" : "send"]()
+    onConfirm()
+  }
+
   useKeyboard((key) => {
     if (busy) return
     if (done) {
@@ -78,7 +98,7 @@ export function OperationPreview({
       return
     }
     if (confirm.kind === "yesno") {
-      if (key.name === "y") onConfirm()
+      if (key.name === "y") fireConfirm()
       else if (key.name === "n") onCancel()
     }
   })
@@ -147,7 +167,7 @@ export function OperationPreview({
             value={value}
             onInput={setValue}
             onSubmit={() => {
-              if (confirm.kind === "phrase" && value.trim() === confirm.phrase) onConfirm()
+              if (confirm.kind === "phrase" && value.trim() === confirm.phrase) fireConfirm()
             }}
           />
         )}
