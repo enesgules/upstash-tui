@@ -45,7 +45,7 @@ Details panel
 - commands · storage · cost
 - select and act — no mouse
 
-# Cost & Limit Awareness
+# Cost And Limits
 ---
 layout: default
 subtitle: Notice limits before billing does
