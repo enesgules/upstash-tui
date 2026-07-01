@@ -1,6 +1,11 @@
 export type UpstashCreds = { email: string; apiKey: string }
 export type OpenRouterCreds = { apiKey: string; model: string }
-export type Config = { upstash: UpstashCreds | null; openrouter: OpenRouterCreds | null }
+export type QStashCreds = { token: string }
+export type Config = {
+  upstash: UpstashCreds | null
+  openrouter: OpenRouterCreds | null
+  qstash: QStashCreds | null
+}
 
 const DEFAULT_OPENROUTER_MODEL = "anthropic/claude-3.5-sonnet"
 
@@ -19,5 +24,8 @@ export function loadConfig(): Config {
     ? { apiKey: openrouterApiKey, model: openrouterModel || DEFAULT_OPENROUTER_MODEL }
     : null
 
-  return { upstash, openrouter }
+  const qstashToken = readEnv("QSTASH_TOKEN")
+  const qstash: QStashCreds | null = qstashToken ? { token: qstashToken } : null
+
+  return { upstash, openrouter, qstash }
 }

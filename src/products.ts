@@ -23,7 +23,7 @@ export const products: Product[] = [
     name: "QStash",
     color: productColors.qstash,
     tagline: "Messaging & scheduling",
-    enabled: false,
+    enabled: true,
   },
   {
     key: "workflow",
@@ -37,7 +37,7 @@ export const products: Product[] = [
     name: "Vector",
     color: productColors.vector,
     tagline: "Serverless vector database",
-    enabled: false,
+    enabled: true,
   },
   {
     key: "box",

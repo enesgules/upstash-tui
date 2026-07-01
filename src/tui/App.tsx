@@ -3,6 +3,8 @@ import type { ProductKey } from "../products.ts"
 import { loadConfig } from "../config.ts"
 import { HomeView } from "./views/HomeView.tsx"
 import { RedisDashboard } from "./views/RedisDashboard.tsx"
+import { QStashView } from "./views/QStashView.tsx"
+import { VectorView } from "./views/VectorView.tsx"
 import { ComingSoonView } from "./views/ComingSoonView.tsx"
 import { SetupView } from "./views/SetupView.tsx"
 
@@ -17,6 +19,14 @@ export function App() {
 
   if (route.view === "home") {
     return <HomeView onOpen={(key) => setRoute({ view: "product", key })} />
+  }
+
+  if (route.key === "qstash") {
+    return <QStashView creds={config.qstash} onHome={goHome} />
+  }
+
+  if (route.key === "vector") {
+    return <VectorView creds={config.upstash} onHome={goHome} />
   }
 
   if (route.key !== "redis") {

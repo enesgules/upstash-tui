@@ -43,11 +43,11 @@ export function HomeView({ onOpen }: { onOpen: (key: ProductKey) => void }) {
   const indexRef = useRef(0)
 
   const move = (next: (i: number) => number) => {
-    setSelectedIndex((i) => {
-      const clamped = Math.max(0, Math.min(lastIndex, next(i)))
-      indexRef.current = clamped
-      return clamped
-    })
+    // Read/write the ref synchronously so rapid consecutive key events (and a
+    // following Enter) all see the up-to-date selection, not batched state.
+    const clamped = Math.max(0, Math.min(lastIndex, next(indexRef.current)))
+    indexRef.current = clamped
+    setSelectedIndex(clamped)
   }
 
   useKeyboard((key) => {
