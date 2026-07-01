@@ -1,6 +1,7 @@
 import { TextAttributes } from "@opentui/core"
 import { theme, layout } from "../../theme.ts"
 import type { RedisDatabase } from "../../types.ts"
+import { Sparkline } from "./Sparkline.tsx"
 
 export function ResourceList({
   databases,
@@ -51,20 +52,25 @@ export function ResourceList({
               key={db.id}
               style={{
                 flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
                 backgroundColor: selected ? theme.accentDim : theme.bgPanel,
                 paddingLeft: 1,
                 paddingRight: 1,
               }}
             >
-              <text fg={db.pinned ? theme.accent : theme.textFaint}>
-                {db.pinned ? "★ " : "  "}
-              </text>
-              <text
-                fg={selected ? theme.textBright : theme.textDim}
-                attributes={selected ? TextAttributes.BOLD : 0}
-              >
-                {db.name}
-              </text>
+              <box style={{ flexDirection: "row", flexShrink: 1 }}>
+                <text fg={db.pinned ? theme.accent : theme.textFaint}>
+                  {db.pinned ? "★ " : "  "}
+                </text>
+                <text
+                  fg={selected ? theme.textBright : theme.textDim}
+                  attributes={selected ? TextAttributes.BOLD : 0}
+                >
+                  {db.name}
+                </text>
+              </box>
+              <Sparkline values={db.stats?.throughput.map((p) => p.y) ?? []} width={7} />
             </box>
           )
         })}
