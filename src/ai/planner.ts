@@ -34,8 +34,7 @@ one of these two shapes:
   "summary": string,
   "risk": "safe" | "paid" | "destructive",
   "requiresConfirmation": boolean,
-  "operations": [ ...one or more operation objects, see below... ],
-  "generatedFiles": [ { "path": string, "content": string }, ... ]  // optional, omit if unused
+  "operations": [ ...one or more operation objects, see below... ]
 }
 
 2. An error, if the request cannot be turned into a supported plan:

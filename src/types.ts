@@ -36,5 +36,4 @@ export type OperationPlan = {
     | { type: "qstash.deleteSchedule"; scheduleId: string; name: string }
     | { type: "qstash.deleteDlq"; dlqId: string; name: string }
   >
-  generatedFiles?: Array<{ path: string; content: string }>
 }

@@ -66,12 +66,3 @@ export async function listIndexes(creds: UpstashCreds): Promise<VectorIndex[]> {
   })
   return raw.map(mapIndex)
 }
-
-export async function getIndex(creds: UpstashCreds, id: string): Promise<VectorIndex> {
-  const raw = await apiRequest<RawVectorIndex>({
-    method: "GET",
-    url: `${BASE_URL}/index/${id}`,
-    auth: auth(creds),
-  })
-  return mapIndex(raw)
-}

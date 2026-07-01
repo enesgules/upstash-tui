@@ -64,16 +64,6 @@ function validateOperation(op: unknown, index: number): OperationPlan["operation
   }
 }
 
-function validateGeneratedFiles(value: unknown): Array<{ path: string; content: string }> {
-  if (!Array.isArray(value)) fail(`"generatedFiles" must be an array when present`)
-  return value.map((file, index) => {
-    if (!isObject(file)) fail(`generatedFiles[${index}] must be an object`)
-    if (typeof file.path !== "string") fail(`generatedFiles[${index}] requires string "path"`)
-    if (typeof file.content !== "string") fail(`generatedFiles[${index}] requires string "content"`)
-    return { path: file.path, content: file.content }
-  })
-}
-
 export function validatePlan(raw: unknown): OperationPlan {
   if (!isObject(raw)) fail("plan must be an object")
 
@@ -98,10 +88,6 @@ export function validatePlan(raw: unknown): OperationPlan {
     risk: raw.risk as Risk,
     requiresConfirmation: raw.requiresConfirmation,
     operations,
-  }
-
-  if (raw.generatedFiles !== undefined) {
-    plan.generatedFiles = validateGeneratedFiles(raw.generatedFiles)
   }
 
   return plan

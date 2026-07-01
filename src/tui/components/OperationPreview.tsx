@@ -128,25 +128,6 @@ export function OperationPreview({
           ))}
         </box>
 
-        {plan.generatedFiles && plan.generatedFiles.length > 0 ? (
-          <box
-            style={{
-              flexDirection: "column",
-              marginTop: 1,
-              border: true,
-              borderStyle: "single",
-              borderColor: theme.borderSubtle,
-              padding: 1,
-            }}
-          >
-            {plan.generatedFiles.map((f) => (
-              <text key={f.path} fg={theme.textFaint}>
-                {f.path}
-              </text>
-            ))}
-          </box>
-        ) : null}
-
         {busy ? (
           <text fg={theme.warn}>Running…</text>
         ) : done ? (

@@ -44,13 +44,6 @@ test("accepts a valid redis.updateBudget plan", () => {
   expect(plan.operations[0]).toEqual({ type: "redis.updateBudget", databaseId: "db_1", budget: 25 })
 })
 
-test("accepts valid generatedFiles", () => {
-  const plan = validatePlan(
-    basePlan({ generatedFiles: [{ path: ".env.local", content: "UPSTASH_REDIS_REST_URL=..." }] }),
-  )
-  expect(plan.generatedFiles).toEqual([{ path: ".env.local", content: "UPSTASH_REDIS_REST_URL=..." }])
-})
-
 test("rejects a non-object", () => {
   expect(() => validatePlan("not a plan")).toThrow(PlanValidationError)
   expect(() => validatePlan(null)).toThrow(PlanValidationError)
@@ -75,11 +68,6 @@ test("rejects wrong param types (numeric budget as string)", () => {
   expect(() =>
     validatePlan(basePlan({ operations: [{ type: "redis.updateBudget", databaseId: "db_1", budget: "25" }] })),
   ).toThrow(PlanValidationError)
-})
-
-test("rejects malformed generatedFiles", () => {
-  expect(() => validatePlan(basePlan({ generatedFiles: [{ path: ".env.local" }] }))).toThrow(PlanValidationError)
-  expect(() => validatePlan(basePlan({ generatedFiles: "not-an-array" }))).toThrow(PlanValidationError)
 })
 
 test("rejects missing title/summary", () => {
