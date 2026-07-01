@@ -65,7 +65,7 @@ bun run deck presentation/upstash-tui.md --theme catppuccin
 talktui has no green/emerald Upstash-brand theme; these three dark developer
 themes are the shortlist. Final theme choice is deferred to the presenter.
 
-## Slide outline (~15 slides)
+## Slide outline (~14 slides)
 
 | # | Slide | Layout | Content |
 |---|-------|--------|---------|
@@ -79,26 +79,34 @@ themes are the shortlist. Final theme choice is deferred to the presenter.
 | 8 | What it does | `statement` | Type a request in plain English → the tool produces an **operation plan** you preview and confirm. Nothing runs unprompted. `<!-- stop -->` for the punchline. |
 | 9 | Safeguard 1 — credential-free | `default` | The LLM never sees or needs credentials; it only emits a JSON plan. `:::tip Credentials never leave your machine`. |
 | 10 | Safeguard 2 — strict allowlist | `code` | Real `OP_TYPES` snippet from `src/operations/validate.ts` with `lines` + `title`. Anything outside the fixed list is rejected — the model can't invent operations. |
-| 11 | Safeguard 3 — no delete, risk + confirm | `default` | No destroy operation exists at all. Every op is tagged `safe` / `paid` / `destructive` and requires confirmation. `:::warning` for the destructive tag; a small pipe table of the three risk levels. |
+| 11 | Safeguard 3 — the AI can't delete | `default` | Destructive ops *do* exist (deleting a database, `risk: "destructive"`, "cannot be undone"), but only through a deliberate human action — the AI planner is explicitly barred from generating one. Every op is tagged `safe` / `paid` / `destructive` and requires confirmation. `:::warning` on the destructive tag; small pipe table of the three risk levels. |
 | 12 | End-to-end flow | `center` | `mermaid` flowchart: Natural language → LLM planner → JSON plan → allowlist validate → preview + risk → user confirms → execute. |
 | 13 | How it's built | `two-cols` | Left: stack (Bun runtime, OpenTUI React, React 19, Developer API over Basic auth, OpenRouter for the planner). Right (`::right::`): module map table (`api/`, `ai/`, `operations/`, `generators/`, `tui/`). |
-| 14 | Roadmap | `default` | Pipe table: Redis (**live**) → QStash, Workflow, Vector, Box (coming soon). Multi-product console architecture already scaffolded. |
-| 15 | Close | `quote` | Vision line, e.g. "Build the console the way developers already work." |
+| 14 | Close | `quote` | Vision line, e.g. "Build the console the way developers already work." |
 
 ## Content sourcing (facts to pull from the codebase, verbatim where quoted)
 
 - **Stack / libs:** `package.json` — `@opentui/core` & `@opentui/react` `^0.4.2`,
   `react` 19. Bun runtime (`bun run`, `bun.lock`).
-- **Products & status:** `src/products.ts` — `redis` enabled; `qstash`,
-  `workflow`, `vector`, `box` with `enabled: false`.
+- **Wired flow (slides 4-12):** the AI command bar, live/demo Redis dashboard,
+  `OperationPreview` modal and `SetupView` are implemented and wired
+  (`src/tui/App.tsx`, `src/tui/components/CommandBar.tsx`,
+  `src/tui/components/OperationPreview.tsx`, `src/tui/views/SetupView.tsx`) — the
+  demo shows real behavior, not scaffolding.
 - **AI planner:** `src/ai/planner.ts` (system prompt, plan/error shapes) and
   `src/api/openrouter.ts` (OpenRouter, default model
   `anthropic/claude-3.5-sonnet`). "never sees or needs credentials" is stated in
   the planner's own system prompt.
 - **Allowlist (slide 10 code):** `src/operations/validate.ts` — the `OP_TYPES`
   array: `redis.create`, `redis.rename`, `redis.toggleEviction`,
-  `redis.updateBudget`, `redis.generateEnv`. No delete/destroy type exists.
+  `redis.updateBudget`, `redis.generateEnv`, `redis.delete`.
+- **Delete nuance (slide 11):** `redis.delete` is a real operation
+  (`src/operations/plans.ts` `deletePlan()`, `risk: "destructive"`, executed via
+  `src/operations/execute.ts` `deleteDatabase`) — but `src/ai/planner.ts`
+  explicitly forbids the LLM from generating it ("There is NO delete/destroy
+  operation type available to you"). So delete is human-only; the AI can't.
 - **Risk levels:** `src/types.ts` — `Risk = "safe" | "paid" | "destructive"`.
+  Plan builders in `src/operations/plans.ts` set the tag per operation.
 - **Env snippet (slide 6 code):** `src/generators/env.ts` — output lines
   `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `REDIS_URL`.
 - **Charts:** design in
