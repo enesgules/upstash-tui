@@ -71,15 +71,12 @@ See you're near a limit without ever opening the billing page.
 # One Console, Every Product
 ---
 layout: default
-subtitle: Switch products with a keypress — Box coming soon
+subtitle: One binary · tab between products · one keyboard model
 ---
 
-| Product | In the terminal |
-| --- | --- |
-| Redis | databases · usage bars · sparklines |
-| QStash | schedules · topics · publish |
-| Workflow | recent runs |
-| Vector | indexes |
+- Redis · QStash · Workflow · Vector — all live
+- Tab between products; the same keys work everywhere
+- Live metric cards per product; write actions on Redis & QStash
 
 # The AI Command Bar
 ---
@@ -189,6 +186,20 @@ Modules
 | ai/ | natural language → plan |
 | operations/ | validate · build · execute |
 | tui/ | views + components |
+
+# Roadmap
+---
+layout: default
+subtitle: Live today — and what's next
+---
+
+| Product | Status | In the terminal |
+| --- | --- | --- |
+| Redis | live | databases · usage · AI command bar |
+| QStash | live | schedules · topics · DLQ · publish |
+| Workflow | live | runs & status |
+| Vector | live | indexes · limits · metrics |
+| Box | soon | instant dev sandboxes |
 
 # upstash-tui
 ---
